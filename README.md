@@ -43,12 +43,13 @@ Windows 11에서 개발하고 확인했습니다. macOS·Linux에서도 같은 �
 Claude Code 안에서 두 줄을 입력합니다.
 
 ```
-/plugin marketplace add MyWay0104/ppt-maker
+/plugin marketplace add https://github.com/MyWay0104/ppt-maker.git
 /plugin install ppt-maker@ppt-maker
 ```
 
 - 첫 줄은 이 GitHub 저장소를 "플러그인 가게(마켓플레이스)"로 등록하고, 둘째 줄은 그 가게에서 `ppt-maker`를 설치합니다.
-- 터미널에서 하려면 `claude plugin marketplace add MyWay0104/ppt-maker` → `claude plugin install ppt-maker@ppt-maker`를 씁니다.
+- 터미널에서 하려면 `claude plugin marketplace add https://github.com/MyWay0104/ppt-maker.git` → `claude plugin install ppt-maker@ppt-maker`를 씁니다.
+- **주소는 위처럼 `https://`로 시작하는 전체 주소를 씁니다.** 짧은 형식(`MyWay0104/ppt-maker`)은 SSH로 받아서, GitHub SSH 키를 설정하지 않은 PC에서는 `Host key verification failed`로 실패합니다(2026-09-24 확인).
 - 설치가 끝나면 Claude Code를 다시 시작하거나 `/reload-plugins`를 입력합니다.
 
 ### Node 의존성 (처음 한 번)
@@ -241,6 +242,8 @@ claude plugin uninstall ppt-maker@ppt-maker     # 삭제
 | `Executable doesn't exist ... chromium` | Chromium 미설치 | `npx --prefix "$S" playwright install chromium` |
 | 다른 PC에서 글자가 넘침 | `present.html`만 복사함 | `assets/` 폴더째 복사합니다 |
 | 기호(화살표 등)가 PC마다 다르게 보임 | Paperlogy에 없는 글자는 그 PC의 글꼴로 그려짐 | `→` `↔`처럼 Paperlogy에 있는 기호를 씁니다 |
+| `marketplace add`가 `Host key verification failed` | 짧은 형식 주소가 SSH로 받음 | `https://github.com/MyWay0104/ppt-maker.git` 전체 주소로 추가합니다 |
+| `marketplace add`가 `Filename too long` | Windows 경로 길이 제한(설정 폴더 경로가 아주 길 때) | 설정 폴더를 짧은 경로에 두거나, 관리자 PowerShell에서 `git config --system core.longpaths true`(git 일반 해결책, 이 플러그인으로는 확인하지 않음) |
 | 스킬이 뜨지 않음 | 설치 뒤 다시 읽지 않음 | `/reload-plugins` 또는 Claude Code 재시작, `/plugin`에서 사용(enabled) 상태 확인 |
 
 ## 12. 개발자용: 검사와 평가
