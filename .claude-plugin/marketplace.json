@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "ppt-maker",
+  "description": "ppt-maker 플러그인 배포 저장소. 플러그인 본체는 ./plugin 폴더.",
+  "owner": {
+    "name": "MyWay0104"
+  },
+  "plugins": [
+    {
+      "name": "ppt-maker",
+      "source": "./plugin",
+      "description": "순수 HTML/CSS/JS 발표자료 제작: intake → BRIEF → overview.html → Aim/Edit → present.html → PDF"
+    }
+  ]
+}

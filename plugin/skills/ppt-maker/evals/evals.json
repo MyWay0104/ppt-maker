@@ -1,0 +1,56 @@
+{
+  "skill_name": "ppt-maker",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Python 기초 사내교육 자료 8장 만들어줘. 디자인은 design-inputs/DESIGN-Notion.md 써줘. 대상은 코딩 처음 해보는 사무직 직원들이야.",
+      "expected_output": "무인 실행(AskUserQuestion 없음)이므로 intake 질문 대신 추천값으로 BRIEF.md(type: edu, slide_count: 8 = 내용 장수, design_source: DESIGN-Notion.md, section_dividers: true)를 채우고 확정 근거에 무인 실행을 적은 뒤 confirmed로 바꾼다. 추천값·추천 흐름은 _work/decisions.md에 [확인 필요]로 남긴다. confirmed 뒤에만 overview.html을 만든다(게이트 A 순서). 스토리보드는 edu-designer, 문구는 content-writer → domain-expert·deck-reviewer 검토를 거친다. S02 목차, 목차 구간마다 구간 표지(title), 내용 장면 .eyebrow 구간 n/N, 명사형 제목. 내용 장면은 8장(표지·구간 표지 별도). 발표자 노트는 장면당 6문장 이하. validate_topic 통과·qa_check 높음 0. export_approved: false를 유지하고 PDF·PPTX를 만들지 않는다(게이트 C). 사람 세션 전용 기대는 manual-checklist.md.",
+      "files": [],
+      "expectations": [
+        "새 topic의 BRIEF.md가 있고 type이 edu, slide_count가 8이다",
+        "BRIEF의 design_source가 DESIGN-Notion.md를 가리킨다",
+        "BRIEF 확정 근거에 무인 실행 표기가 있고 _work/decisions.md에 [확인 필요] 항목이 1개 이상 있다",
+        "overview.html 생성이 BRIEF status: confirmed 기록보다 뒤에 온다(게이트 A 순서)",
+        "edu-designer·content-writer·domain-expert·deck-reviewer 서브에이전트 호출이 transcript에 있다",
+        "S02가 목차 장면이고 모든 .scene-title이 명사형이며 S01 밖 구간 표지(title 타입) 장면과 내용 장면 .eyebrow 구간 n/N 표시가 있다",
+        "내용 장면(S01 표지·구간 표지 제외)이 8장이다",
+        "validate_topic.py가 통과하고 _work/qa_check.json의 높음이 0건이다",
+        "BRIEF export_approved가 명시적으로 false이고 PDF·PPTX 파일이 없다(게이트 C)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "독서모임 리딩자료 12장 부탁해. 책은 『미움받을 용기』이고 발제 질문은 3개야: 1) 트라우마는 존재하지 않는가 2) 인정 욕구를 버릴 수 있는가 3) 지금 여기를 산다는 것은. 그냥 바로 만들어줘.",
+      "expected_output": "무인 실행이므로 추천값으로 BRIEF.md(type: reading, slide_count: 12 = 내용 장수)를 채우고 확정 근거에 무인 실행을 적은 뒤 confirmed로 바꾼다. 디자인을 정하지 않았으므로 new_topic.py exit 2 목록에서 되돌리기 쉬운 팔레트를 고르되 decisions.md에 [확인 필요]로 남긴다. confirmed 뒤에만 overview.html. 발제 앞에 책 소개 구간(어떤 책인가·저자·핵심 개념)을 두고, 책 표지·저자 사진은 이미지 자리표시로 둔다. 인용 장면의 쪽수(p.NN)는 지어내지 않고 [확인 필요]로 둔다. 발제 질문 3개를 그대로 옮긴다. S02 목차, 목차 구간마다 구간 표지, 내용 장면 .eyebrow n/N. export하지 않는다.",
+      "files": [],
+      "expectations": [
+        "새 topic의 BRIEF.md가 있고 type이 reading, slide_count가 12다",
+        "디자인을 조용히 고르지 않는다: _work/decisions.md에 디자인·팔레트 선택이 [확인 필요]로 기록된다",
+        "overview.html 생성이 BRIEF status: confirmed 기록보다 뒤에 온다(게이트 A 순서)",
+        "책 쪽수를 지어내지 않는다: 덱 본문(HTML·PPTX)에 p.NN 쪽수가 없거나, 있으면 [확인 필요] 표시와 함께다",
+        "발제 질문 3개가 덱 본문(HTML·PPTX) 또는 스토리보드에 그대로 있다",
+        "첫 발제 질문 장보다 앞에 저자를 다루는 책 소개 장이 있다",
+        "책 표지·저자 등 이미지 또는 이미지 자리표시가 1곳 이상 있다",
+        "S02가 목차 장면이고 모든 .scene-title이 명사형이며 S01 밖 구간 표지(title 타입) 장면과 내용 장면 .eyebrow 구간 n/N 표시가 있다",
+        "BRIEF export_approved가 명시적으로 false이고 PDF·PPTX 파일이 없다(게이트 C)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "topics/_sample 덱에서 [data-slide=\"2\"] > ul.bullets 이 부분을 compare 장면으로 바꾸고, 제목을 '세 가지 확인 방법'으로 고쳐줘.",
+      "expected_output": "기존 topic이므로 intake를 다시 하지 않는다. 2번 장면의 data-slide·data-scene-id·꼬리(speaker-note, deck-footer)는 유지하고 data-skill을 compare로, 본문을 compare.md 마크업(.compare-grid > .compare-col > .compare-heading + ul.compare-list)으로 바꾼다. 기존 불릿 문구 3개는 버리지 않고 그대로 옮긴다. 제목은 정확히 '세 가지 확인 방법'. 표지(불릿 선)가 본문과 겹치지 않는다. 이어서 build_present → validate_topic → qa_check --slides 2 → 스크린샷을 찍고 PNG를 열어 눈으로 확인한다. 다른 장면은 바뀌지 않는다. PDF export는 하지 않는다.",
+      "files": [
+        "topics/_sample"
+      ],
+      "expectations": [
+        "2번 장면이 compare 마크업(.compare-grid > .compare-col > .compare-heading + ul.compare-list)이고 제목이 정확히 '세 가지 확인 방법'이다",
+        "원본 2번 장면의 불릿 문구가 모두 2번 장면에 그대로 남아 있다",
+        "2번 장면의 data-scene-id S02와 speaker-note가 유지된다",
+        "1·3번 장면 HTML이 바뀌지 않는다",
+        "2번 장면 qa_check 높음이 0건이다(표지 겹침 포함)",
+        "overview.html을 마지막으로 고친 뒤 스크린샷을 열어 확인했다",
+        "새로 export하지 않는다"
+      ]
+    }
+  ]
+}

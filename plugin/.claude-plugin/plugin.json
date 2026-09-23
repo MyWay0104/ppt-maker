@@ -1,0 +1,12 @@
+{
+  "name": "ppt-maker",
+  "version": "1.0.0",
+  "homepage": "https://github.com/MyWay0104/ppt-maker",
+  "repository": "https://github.com/MyWay0104/ppt-maker",
+  "description": "순수 HTML/CSS/JS로 16:9 발표자료(슬라이드 덱)를 만든다. intake 질문 → BRIEF 확정 → overview.html 목업 → Aim/Edit 검토 루프 → present.html 발표(발표자 뷰) → PDF. 교육 교안·독서모임 리딩자료·일반 발표에 쓴다.",
+  "author": {
+    "name": "MyWay0104"
+  },
+  "license": "MIT",
+  "keywords": ["slides", "presentation", "ppt", "deck", "html", "pdf", "korean"]
+}

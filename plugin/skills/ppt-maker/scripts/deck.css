@@ -1,0 +1,138 @@
+/*
+ * deck.css — present.html 전용 발표 런타임 스타일 (build_present.py가 인라인한다)
+ * 원칙: 장면은 1920×1080 종이 한 장, 브라우저는 그 종이를 화면에 맞게 축소하는 복사기.
+ * overview.html에는 넣지 않는다(overview는 body가 뷰포트 전체).
+ */
+
+/* ============ 초기화: overview.html UI 스타일과 똑같이 맞춘다 ============
+ * overview의 `* { margin:0; padding:0; box-sizing:border-box }`는 장면 안 요소에도 적용된다.
+ * present에도 같은 규칙이 있어야 두 파일에서 장면이 한 픽셀도 다르지 않게 그려진다.
+ * (없으면 .scene 여백이 1920×1080 밖으로 더해져 PDF 한 장이 두 쪽으로 넘어간다) */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ============ 청중 화면 ============ */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;            /* 스크롤바가 생기면 배율 계산이 어긋난다 */
+  background: #000;            /* 레터박스(남는 여백) 색 */
+}
+#deck {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+#deck > .scene {
+  display: flex;               /* scene-styles는 display를 정하지 않는다 → 여기서 정한다 */
+  position: absolute;          /* 모든 장면을 같은 자리에 겹쳐 놓는다 */
+  top: 50%;
+  left: 50%;
+  /* 1) 가운데 정렬 → 2) 배율 축소. 순서가 바뀌면 위치가 틀어진다 */
+  transform: translate(-50%, -50%) scale(var(--scale, 1));
+  transform-origin: center center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s ease;
+}
+#deck > .scene.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* View Transitions를 쓰는 브라우저는 전환을 한 번만 하도록 CSS 전환을 끈다 */
+html.vt #deck > .scene { transition: none; }
+.scene .speaker-note { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #deck > .scene { transition: none; }
+}
+
+/* ============ 발표자 창 (?presenter) ============ */
+body.presenter {
+  background: #15171a;
+  color: #e9eaec;
+  font-family: "Paperlogy", system-ui, sans-serif;
+}
+body.presenter #deck { display: none; }
+#presenter {
+  display: none;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 20px;
+  gap: 16px;
+  grid-template-columns: 3fr 2fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "cur  next"
+    "cur  notes"
+    "bar  bar";
+}
+body.presenter #presenter { display: grid; }
+.pv-label {
+  font-size: 13px; font-weight: 700; letter-spacing: 2px;
+  color: #8a9099; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.pv-cur  { grid-area: cur;  display: flex; flex-direction: column; min-height: 0; }
+.pv-next { grid-area: next; display: flex; flex-direction: column; }
+.pv-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #000;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .45);
+}
+.pv-frame > .scene {
+  display: flex;
+  position: absolute; top: 0; left: 0;
+  transform-origin: top left;
+  transform: scale(var(--pv-scale, .3));
+}
+.pv-end {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: #8a9099;
+}
+.pv-notes {
+  grid-area: notes;
+  overflow-y: auto;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: #1f2226;
+  font-size: 24px; line-height: 1.6;
+  white-space: pre-wrap;
+}
+.pv-notes.empty { color: #6b717a; font-style: italic; }
+.pv-bar {
+  grid-area: bar;
+  display: flex; align-items: center; gap: 20px;
+  font-size: 20px;
+}
+.pv-count { font-weight: 800; color: #fff; }
+.pv-timer { font-family: "JetBrains Mono", monospace; font-size: 28px; color: #9fd0ff; }
+.pv-clock { margin-left: auto; font-family: "JetBrains Mono", monospace; color: #8a9099; }
+.pv-bar button {
+  padding: 6px 14px; border-radius: 8px;
+  border: 1px solid #3a3f46; background: #23272c; color: #e9eaec;
+  font: inherit; font-size: 15px; cursor: pointer;
+}
+.pv-bar button:hover { border-color: #9fd0ff; }
+
+/* ============ 인쇄·PDF: 축소를 풀고 장면마다 한 쪽 ============ */
+@page { size: 1920px 1080px; margin: 0; }
+@media print {
+  html, body {
+    overflow: visible; height: auto; background: #fff;
+    print-color-adjust: exact; -webkit-print-color-adjust: exact;
+  }
+  #presenter { display: none !important; }
+  body.presenter #deck, #deck { display: block; width: auto; height: auto; }
+  #deck > .scene {
+    position: relative; top: auto; left: auto;
+    transform: none; opacity: 1;
+    width: 1920px; height: 1080px;
+    break-after: page; page-break-after: always;
+  }
+  #deck > .scene:last-child { break-after: auto; page-break-after: auto; }
+}

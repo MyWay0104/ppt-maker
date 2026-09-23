@@ -1,0 +1,15 @@
+{
+  "name": "ppt-maker-scripts",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ppt-maker Node 스크립트(export_pdf, qa_check, export_pptx, paper_figures) 의존성",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^4.10.38",
+    "playwright": "^1.63.0",
+    "pptxgenjs": "^4.0.1"
+  }
+}

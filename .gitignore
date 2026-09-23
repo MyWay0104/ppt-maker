@@ -1,0 +1,17 @@
+# 의존성·캐시
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# 생성물: overview.html에서 다시 만든다
+topics/*/present.html
+topics/*/overview.html.bak
+topics/*/exports/*.pdf
+topics/*/exports/*.pptx
+topics/*/_work/shots/
+topics/*/_work/qa_check.json
+
+# claude plugin eval 결과
+plugin/evals/results/

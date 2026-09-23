@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="ppt-maker-slug" content="_sample" />
+    <title>ppt-maker 샘플 덱 · Overview</title>
+    <link rel="icon" href="data:," />
+    <!--
+      ppt-maker overview — 이 파일이 덱의 원본이다.
+      구조: [UI 크롬 스타일] + [id가 scene-styles인 장면 스타일] + [SLIDES 마커 사이의 scene 장면들]
+      - build_present.py는 장면 스타일과 SLIDES 영역만 꺼내 present.html을 만든다.
+      - 외부 CDN을 쓰지 않는다. 폰트는 scene-styles 첫 줄의 @import(assets/fonts/fonts.css)로 읽는다.
+    -->
+    <style>
+      /* ============================================================
+       * UI 크롬 변수 — 어느 topic에서도 같다.
+       *   --ui-accent는 장면 토큰 --accent를 따라간다(없으면 기본 파랑).
+       * ============================================================ */
+      :root {
+        --ui-bg: #e6e6e6;
+        --ui-strip: #ddd;
+        --ui-card: #ffffff;
+        --ui-text: #222222;
+        --ui-text-dim: #6a6a6a;
+        --ui-surface-light: #f2f2f2;
+        --ui-accent: var(--accent, #2f6fde);
+        --ui-accent-soft: color-mix(in srgb, var(--ui-accent) 45%, transparent);
+        --ui-accent-faint: color-mix(in srgb, var(--ui-accent) 12%, transparent);
+        --ui-danger: #d64545;
+        --ui-font: "Paperlogy", -apple-system, "Segoe UI", system-ui, sans-serif;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        background: var(--ui-bg);
+        color: var(--ui-text);
+        font-family: var(--ui-font);
+        -webkit-font-smoothing: antialiased;
+      }
+      body { display: flex; height: 100vh; overflow: hidden; }
+
+      /* ============ 왼쪽 썸네일 스트립 ============ */
+      .strip {
+        width: 340px; flex-shrink: 0;
+        height: 100vh; overflow-y: auto;
+        padding: 16px;
+        background: var(--ui-strip);
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .strip-header {
+        font-size: 11px; font-weight: 700;
+        letter-spacing: 2px; color: var(--ui-text-dim);
+        text-transform: uppercase;
+        padding: 4px 4px 12px;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .strip-header::before {
+        content: ""; width: 8px; height: 8px;
+        background: var(--ui-accent); border-radius: 50%;
+      }
+      .strip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .thumb {
+        container-type: inline-size;
+        position: relative; width: 100%;
+        aspect-ratio: 16 / 9; overflow: hidden;
+        border-radius: 8px;
+        background: var(--bg, #000);
+        cursor: pointer;
+        border: 2px solid transparent;
+        box-shadow: rgba(0, 0, 0, 0.22) 0px 2px 8px;
+        transition: border-color 0.15s ease;
+      }
+      .thumb:hover { border-color: var(--ui-accent-soft); }
+      .thumb.active {
+        border-color: var(--ui-accent);
+        box-shadow: 0px 4px 14px var(--ui-accent-soft);
+      }
+      /* 썸네일: 1920×1080 장면 복제본을 칸 폭에 맞게 축소 (Chrome 검토용 CSS 나눗셈) */
+      .thumb .scene {
+        position: absolute; top: 0; left: 0;
+        transform-origin: top left;
+        transform: scale(calc(100cqw / 1920px));
+        display: flex;
+        pointer-events: none;
+      }
+      .thumb-label {
+        position: absolute; top: 4px; left: 6px;
+        background: rgba(0, 0, 0, 0.82); color: #fff;
+        padding: 2px 6px; border-radius: 4px;
+        font-size: 9px; font-weight: 600; letter-spacing: 0.5px;
+        z-index: 10;
+        display: inline-flex; align-items: center; gap: 4px;
+        opacity: 0;
+        transition: opacity 0.12s ease;
+      }
+      .thumb-label code {
+        background: var(--ui-accent); color: #fff;
+        padding: 1px 4px; border-radius: 2px;
+        font-size: 8px; font-family: "JetBrains Mono", monospace;
+      }
+      .thumb:hover .thumb-label { opacity: 0.92; }
+
+      /* ============ 오른쪽 큰 화면 ============ */
+      .main {
+        flex: 1; min-width: 0;
+        height: 100vh;
+        display: flex; flex-direction: column;
+        padding: 20px 24px 24px;
+      }
+      .main-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 16px; flex-shrink: 0;
+      }
+      .main-title {
+        font-size: 22px; font-weight: 700; letter-spacing: -0.3px;
+        display: flex; align-items: center; gap: 10px;
+        min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .main-title::before {
+        content: ""; width: 12px; height: 12px; flex-shrink: 0;
+        background: var(--ui-accent); border-radius: 50%;
+      }
+      .main-nav { display: flex; align-items: center; gap: 12px; }
+      .nav-btn {
+        width: 36px; height: 36px; border-radius: 50%;
+        background: var(--ui-card);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        color: var(--ui-text);
+        cursor: pointer; font-size: 18px;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .nav-btn:hover { background: var(--ui-accent); color: #fff; border-color: var(--ui-accent); }
+      .nav-btn:disabled {
+        opacity: 0.35; cursor: default;
+        background: var(--ui-card); color: var(--ui-text);
+        border-color: rgba(0,0,0,0.08);
+      }
+      .nav-index {
+        font-size: 14px; font-weight: 700;
+        letter-spacing: 2px; color: var(--ui-text);
+        min-width: 90px; text-align: center;
+      }
+      .nav-index .current { color: var(--ui-accent); }
+      .nav-index .sep { opacity: 0.4; margin: 0 6px; }
+      .nav-index .skill {
+        display: inline-block; margin-left: 12px;
+        padding: 3px 8px;
+        background: var(--ui-surface-light);
+        border-radius: 5px;
+        font-size: 11px; letter-spacing: 0.5px;
+        color: var(--ui-text);
+      }
+      .detail {
+        flex: 1; min-height: 0;
+        container-type: size;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .detail-frame {
+        width: min(100cqw, calc(100cqh * 16 / 9));
+        aspect-ratio: 16 / 9;
+        overflow: hidden; border-radius: 16px;
+        background: var(--bg, #000);
+        box-shadow:
+          rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
+          rgba(0, 0, 0, 0.28) 0px 10px 36px;
+        position: relative;
+        container-type: inline-size;
+      }
+      .detail-frame .scene {
+        position: absolute; top: 0; left: 0;
+        transform-origin: top left;
+        transform: scale(calc(100cqw / 1920px));
+        display: none;
+      }
+      .detail-frame .scene.active { display: flex; }
+
+      /* ============ Aim(요소 셀렉터 복사) ============ */
+      .header-right { display: flex; align-items: center; gap: 14px; }
+      .aim-btn, .edit-btn {
+        padding: 7px 14px; border-radius: 8px;
+        background: var(--ui-card);
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        color: var(--ui-text);
+        cursor: pointer; font-size: 13px; font-weight: 600;
+        font-family: inherit;
+        display: inline-flex; align-items: center; gap: 8px;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+      }
+      .aim-btn::before {
+        content: ""; width: 12px; height: 12px;
+        border: 2px solid currentColor; border-radius: 50%;
+        box-shadow: inset 0 0 0 2px var(--ui-card);
+        background: currentColor;
+      }
+      .aim-btn:hover { border-color: var(--ui-accent); color: var(--ui-accent); }
+      .aim-btn.active {
+        background: var(--ui-accent); color: #fff;
+        border-color: var(--ui-accent);
+        box-shadow: 0px 4px 12px var(--ui-accent-soft);
+      }
+      .aim-btn.active::before { box-shadow: inset 0 0 0 2px var(--ui-accent); }
+      body.aim-active { cursor: crosshair; }
+      body.aim-active *:not(.aim-overlay):not(.aim-tooltip):not(.aim-toast):not(.aim-toast *) { cursor: crosshair !important; }
+      .aim-overlay {
+        position: fixed;
+        border: 2px solid var(--ui-accent);
+        background: var(--ui-accent-faint);
+        pointer-events: none; z-index: 9998;
+        border-radius: 2px; display: none;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+      }
+      .aim-tooltip {
+        position: fixed;
+        background: #222; color: #fff;
+        padding: 6px 10px; border-radius: 6px;
+        font-family: "JetBrains Mono", monospace; font-size: 11px;
+        max-width: 500px; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap;
+        pointer-events: none; z-index: 9999; display: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+      .aim-tooltip .tag-part { color: #8ab4ff; }
+      .aim-tooltip .cls-part { color: #ffd27a; }
+      .aim-tooltip .sep-part { color: rgba(255,255,255,0.4); }
+
+      /* ============ 알림 토스트 (Aim·Edit 공용) ============ */
+      .aim-toast {
+        position: fixed; bottom: 24px; right: 24px;
+        background: #222; color: #fff;
+        padding: 14px 20px; border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        z-index: 10000; opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        pointer-events: none; max-width: 460px;
+      }
+      .aim-toast.show { opacity: 1; transform: translateY(0); }
+      .aim-toast.fail { background: #3a1616; border: 1px solid var(--ui-danger); }
+      .aim-toast .toast-title {
+        font-size: 13px; font-weight: 700;
+        color: var(--ui-accent);
+        margin-bottom: 4px; letter-spacing: 0.3px;
+      }
+      .aim-toast.fail .toast-title { color: #ff8a8a; }
+      .aim-toast .toast-sel {
+        font-family: "JetBrains Mono", monospace; font-size: 11px;
+        color: rgba(255, 255, 255, 0.75);
+        word-break: break-all; line-height: 1.4;
+        white-space: pre-line;
+      }
+
+      /* ============ Edit(글자 직접 수정) ============ */
+      .edit-btn::before { content: "✎"; font-size: 15px; line-height: 1; }
+      .edit-btn:hover { border-color: #2196F3; color: #2196F3; }
+      .edit-btn.active {
+        background: #2196F3; color: #fff; border-color: #2196F3;
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
+      }
+      body.edit-mode #detail-frame [contenteditable="true"] {
+        outline: 2px dashed rgba(33, 150, 243, 0.45);
+        outline-offset: 2px;
+        cursor: text;
+        transition: outline-color 0.12s, background 0.12s;
+      }
+      body.edit-mode #detail-frame [contenteditable="true"]:hover {
+        outline-color: rgba(33, 150, 243, 0.8);
+        background: rgba(33, 150, 243, 0.05);
+      }
+      body.edit-mode #detail-frame [contenteditable="true"]:focus {
+        outline: 2px solid #2196F3;
+        outline-offset: 3px;
+        background: rgba(33, 150, 243, 0.08);
+      }
+
+      /* ============ 인쇄(빠른 확인용. 최종 PDF는 export_pdf.mjs) ============ */
+      @page { size: 1920px 1080px; margin: 0; }
+      @media print {
+        html, body {
+          width: auto; height: auto;
+          overflow: visible; display: block;
+          background: #fff;
+          print-color-adjust: exact; -webkit-print-color-adjust: exact;
+        }
+        .strip, .main-header, .aim-overlay, .aim-tooltip, .aim-toast { display: none !important; }
+        .main, .detail, .detail-frame {
+          display: block; width: auto; height: auto;
+          padding: 0; overflow: visible;
+          aspect-ratio: auto; border-radius: 0; box-shadow: none;
+          background: transparent; container-type: normal;
+        }
+        .detail-frame .scene,
+        .detail-frame .scene.active {
+          display: flex !important;
+          position: relative; top: auto; left: auto;
+          width: 1920px; height: 1080px;
+          transform: none;
+          break-after: page; page-break-after: always;
+        }
+        .detail-frame .scene:last-child { break-after: auto; page-break-after: auto; }
+      }
+    </style>
+
+    <!-- ============================================================
+     * 장면 스타일 — build_present.py가 이 블록을 그대로 present.html로 복사한다.
+     *   규칙: 첫 줄은 fonts.css @import, 그다음 :root 토큰(--accent 필수), .scene 기본, 타입별 컴포넌트.
+     *   html/body 크기를 고정하는 규칙은 넣지 않는다(overview는 body가 뷰포트 전체).
+     *   CSS 수정 레이어는 PATCH START/END 구간(apply_css_patch.py가 관리).
+     * ============================================================ -->
+    <style id="scene-styles">
+      @import url("assets/fonts/fonts.css");
+
+      /* ===== 토큰: DESIGN.md front matter에서 옮김 ===== */
+      :root {
+        --accent: #2f6fde;
+        --bg: #f7f6f3;
+        --surface: #ffffff;
+        --text: #1f2328;
+        --text-dim: #5b616b;
+        --line: #e3e1dc;
+        --radius-card: 24px;
+        --pad-x: 140px;
+        --font-body: "Paperlogy", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+      }
+
+      /* ===== 장면 기본: 종이 한 장 1920×1080 (display는 overview/present가 정한다) ===== */
+      .scene {
+        width: 1920px; height: 1080px;
+        position: relative; overflow: hidden;
+        flex-direction: column; justify-content: center; gap: 40px;
+        padding: 120px var(--pad-x) 160px;
+        background: var(--bg); color: var(--text);
+        font-family: var(--font-body);
+      }
+      .scene .speaker-note { display: none; }
+
+      /* ===== 공통 글자 ===== */
+      .scene-title { font-size: 72px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; }
+      .thesis { font-size: 36px; font-weight: 500; color: var(--text-dim); line-height: 1.5; }
+
+      /* ===== title ===== */
+      .title-scene { justify-content: center; gap: 28px; }
+      .hero-kicker { font-size: 32px; font-weight: 700; color: var(--accent); letter-spacing: 2px; }
+      .hero-title { font-size: 120px; font-weight: 800; letter-spacing: -2px; line-height: 1.1; }
+      .hero-sub { font-size: 44px; font-weight: 500; color: var(--text-dim); }
+
+      /* ===== title-bullets ===== */
+      .bullets { list-style: none; display: flex; flex-direction: column; gap: 28px; }
+      .bullets li { position: relative; padding-left: 52px; font-size: 40px; font-weight: 600; line-height: 1.4; }
+      .bullets li::before {
+        content: ""; position: absolute; left: 0; top: 0.5em;
+        width: 20px; height: 20px; border-radius: 50%; background: var(--accent);
+      }
+
+      /* ===== stat ===== */
+      .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+      .stat {
+        display: flex; flex-direction: column; gap: 16px;
+        padding: 48px; border-radius: var(--radius-card);
+        background: var(--surface); border: 1px solid var(--line);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+      .stat-value { font-size: 96px; font-weight: 800; color: var(--accent); line-height: 1; }
+      .stat-label { font-size: 32px; font-weight: 600; line-height: 1.4; }
+
+      /* ===== 꼬리: 출처 → (발표자 노트) → 꼬리말 ===== */
+      .source {
+        position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 100px;
+        font-size: 24px; color: var(--text-dim);
+      }
+      .deck-footer {
+        position: absolute; left: var(--pad-x); right: var(--pad-x); bottom: 48px;
+        padding-top: 12px; border-top: 1px solid var(--line);
+        font-size: 24px; color: var(--text-dim); letter-spacing: 1px;
+      }
+
+      /* 덱 전체 디자인 수정은 _work/slide_ui/0N_*.css에 쓰고 apply_css_patch.py로 아래 구간에 적용한다(직접 쓰지 않는다) */
+      /* ===== PATCH START ===== */
+      /* ===== PATCH END ===== */
+    </style>
+  </head>
+  <body>
+
+    <aside class="strip">
+      <div class="strip-header"><span>ppt-maker 샘플 덱</span> · <span id="strip-count">0</span> slides</div>
+      <div class="strip-grid" id="strip-grid"></div>
+    </aside>
+
+    <main class="main">
+      <header class="main-header">
+        <div class="main-title">ppt-maker 샘플 덱 · Overview</div>
+        <div class="header-right">
+          <button class="edit-btn" id="nav-edit" aria-label="글자 수정">Edit</button>
+          <button class="aim-btn" id="nav-aim" aria-label="요소 셀렉터 복사">Aim</button>
+          <div class="main-nav">
+            <button class="nav-btn" id="nav-prev" aria-label="이전">←</button>
+            <div class="nav-index">
+              <span class="current" id="nav-current">01</span><span class="sep">/</span><span id="nav-total">01</span>
+              <span class="skill" id="nav-skill">title</span>
+            </div>
+            <button class="nav-btn" id="nav-next" aria-label="다음">→</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="detail">
+        <div class="detail-frame" id="detail-frame">
+<!-- SLIDES START -->
+<section class="scene title-scene" data-slide="1" data-skill="title" data-scene-id="S01">
+  <div class="hero-kicker" data-editable="true">SAMPLE DECK</div>
+  <h1 class="hero-title" data-editable="true">ppt-maker 샘플 덱</h1>
+  <p class="hero-sub" data-editable="true">순수 HTML로 만드는 16:9 발표자료</p>
+  <aside class="speaker-note">이 덱은 ppt-maker 스크립트가 제대로 도는지 확인하는 기준 예시입니다.</aside>
+</section>
+
+<section class="scene" data-slide="2" data-skill="title-bullets" data-scene-id="S02">
+  <h2 class="scene-title" data-editable="true">이 덱으로 확인하는 것</h2>
+  <p class="thesis" data-editable="true">원본 하나를 고치면 발표 파일과 PDF가 따라옵니다.</p>
+  <ul class="bullets">
+    <li data-editable="true">overview.html에서 Aim과 Edit로 고친다</li>
+    <li data-editable="true">present.html로 발표하고 발표자 창을 띄운다</li>
+    <li data-editable="true">PDF는 장면 수와 같은 쪽수로 나온다</li>
+  </ul>
+  <aside class="speaker-note">세 가지를 차례로 확인합니다. 편집, 발표, PDF입니다.</aside>
+  <div class="deck-footer" data-editable="true">ppt-maker · 샘플 덱</div>
+</section>
+
+<section class="scene" data-slide="3" data-skill="stat" data-scene-id="S03">
+  <h2 class="scene-title" data-editable="true">숫자로 보는 캔버스 규칙</h2>
+  <div class="stats">
+    <div class="stat"><span class="stat-value" data-editable="true">1920×1080</span><span class="stat-label" data-editable="true">장면 한 장의 고정 크기</span></div>
+    <div class="stat"><span class="stat-value" data-editable="true">24px</span><span class="stat-label" data-editable="true">본문 글자 하한</span></div>
+    <div class="stat"><span class="stat-value" data-editable="true">3</span><span class="stat-label" data-editable="true">작업을 막는 게이트 수</span></div>
+  </div>
+  <p class="source" data-editable="true">출처: ppt-maker 설계 문서 (docs/research-2026-09-22-pure-html-slides.md)</p>
+  <aside class="speaker-note">캔버스 크기, 글자 하한, 게이트 수 세 숫자만 기억하면 됩니다.</aside>
+  <div class="deck-footer" data-editable="true">ppt-maker · 샘플 덱</div>
+</section>
+<!-- SLIDES END -->
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (function() {
+        const frame = document.getElementById('detail-frame');
+        const scenes = Array.from(frame.querySelectorAll('.scene[data-slide]'));
+        const stripGrid = document.getElementById('strip-grid');
+        const prevBtn = document.getElementById('nav-prev');
+        const nextBtn = document.getElementById('nav-next');
+        const currentEl = document.getElementById('nav-current');
+        const skillEl = document.getElementById('nav-skill');
+        const pad2 = (n) => String(n).padStart(2, '0');
+
+        // 장면 수는 파일에서 센다. 원본을 고쳐도 숫자가 틀어지지 않는다.
+        document.getElementById('strip-count').textContent = scenes.length;
+        document.getElementById('nav-total').textContent = pad2(scenes.length);
+
+        /** 썸네일용 복제본에서 편집 흔적을 지운다. */
+        function cleanThumbClone(clone) {
+          clone.classList.add('active');
+          clone.removeAttribute('contenteditable');
+          clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+          return clone;
+        }
+
+        /** n번 장면의 썸네일을 현재 DOM으로 다시 그린다. */
+        function syncThumbFromScene(n) {
+          const scene = scenes[n - 1];
+          const thumb = thumbs[n - 1];
+          if (!scene || !thumb) return;
+          const oldClone = thumb.querySelector('.scene');
+          const clone = cleanThumbClone(scene.cloneNode(true));
+          if (oldClone) oldClone.replaceWith(clone);
+          else thumb.insertBefore(clone, thumb.firstChild);
+        }
+
+        scenes.forEach((scene, i) => {
+          const n = i + 1;
+          const thumb = document.createElement('div');
+          thumb.className = 'thumb';
+          thumb.dataset.thumb = n;
+          thumb.appendChild(cleanThumbClone(scene.cloneNode(true)));
+          const label = document.createElement('div');
+          label.className = 'thumb-label';
+          label.innerHTML = `<span>${pad2(n)}</span><code>${scene.dataset.skill || ''}</code>`;
+          thumb.appendChild(label);
+          thumb.addEventListener('click', () => setActive(n));
+          stripGrid.appendChild(thumb);
+        });
+
+        const thumbs = Array.from(stripGrid.querySelectorAll('.thumb'));
+        let active = 1;
+
+        /** n번 장면을 큰 화면에 띄우고 주소창 해시(#n)를 맞춘다. */
+        function setActive(n) {
+          if (!scenes.length) return;
+          n = Math.max(1, Math.min(scenes.length, n));
+          active = n;
+          scenes.forEach((scene, i) => scene.classList.toggle('active', i + 1 === n));
+          thumbs.forEach((thumb, i) => thumb.classList.toggle('active', i + 1 === n));
+          currentEl.textContent = pad2(n);
+          skillEl.textContent = scenes[n - 1].dataset.skill || '';
+          prevBtn.disabled = (n === 1);
+          nextBtn.disabled = (n === scenes.length);
+          history.replaceState(null, '', '#' + n);
+          const t = thumbs[n - 1];
+          if (t && t.scrollIntoView) t.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+
+        prevBtn.addEventListener('click', () => setActive(active - 1));
+        nextBtn.addEventListener('click', () => setActive(active + 1));
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { setActive(active - 1); e.preventDefault(); }
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { setActive(active + 1); e.preventDefault(); }
+          if (/^[1-9]$/.test(e.key)) setActive(parseInt(e.key, 10));
+          if (e.key === '0') setActive(10);
+        });
+
+        // 새로고침해도 보던 장면에서 다시 연다
+        setActive(parseInt(location.hash.slice(1), 10) || 1);
+
+        /* ============ 알림 토스트 ============ */
+        const toast = document.createElement('div');
+        toast.className = 'aim-toast';
+        document.body.appendChild(toast);
+        let toastTimer = null;
+        const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        /** 토스트를 띄운다. fail=true면 빨간 실패 스타일. */
+        function showToast(title, body, { fail = false, ms = 3000 } = {}) {
+          toast.innerHTML = '<div class="toast-title">' + esc(title) + '</div>' +
+            (body ? '<div class="toast-sel">' + esc(body) + '</div>' : '');
+          toast.classList.toggle('fail', fail);
+          toast.classList.add('show');
+          if (toastTimer) clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+        }
+
+        function copyToClipboard(text) {
+          if (navigator.clipboard && window.isSecureContext !== false) {
+            return navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+          }
+          return legacyCopy(text);
+        }
+        function legacyCopy(text) {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); } catch (e) {}
+          document.body.removeChild(ta);
+          return Promise.resolve();
+        }
+
+        /* ============ Aim: 요소를 집어 셀렉터를 클립보드로 ============ */
+        const aimBtn = document.getElementById('nav-aim');
+        const overlay = document.createElement('div');
+        overlay.className = 'aim-overlay';
+        document.body.appendChild(overlay);
+        const tooltip = document.createElement('div');
+        tooltip.className = 'aim-tooltip';
+        document.body.appendChild(tooltip);
+        let aimMode = false;
+
+        function activeSceneEl() {
+          return document.querySelector('#detail-frame .scene.active');
+        }
+
+        /** 장면([data-slide="N"])부터 요소까지의 경로 셀렉터. 같은 태그·클래스 형제가 여럿이면 :nth-of-type을 붙인다. */
+        function buildSelector(el) {
+          if (!el || el.nodeType !== 1) return '';
+          const parts = [];
+          let cur = el;
+          while (cur && cur.nodeType === 1) {
+            if (cur.classList.contains('scene') && cur.dataset.slide) {
+              parts.unshift(`[data-slide="${cur.dataset.slide}"]`);
+              break;
+            }
+            if (cur.id) { parts.unshift('#' + cur.id); break; }
+            let part = cur.tagName.toLowerCase();
+            if (cur.className && typeof cur.className === 'string') {
+              const classes = cur.className.trim().split(/\s+/)
+                .filter(c => c && c !== 'active' && !c.startsWith('aim-'));
+              if (classes.length) part += '.' + classes.join('.');
+            }
+            const parent = cur.parentElement;
+            if (parent) {
+              // :nth-of-type은 "같은 태그" 기준으로 센다 → 인덱스도 같은 태그 형제 중 위치로 계산
+              const sameTag = Array.from(parent.children).filter(s => s.tagName === cur.tagName);
+              const twins = sameTag.filter(s => s.className === cur.className);
+              if (twins.length > 1) {
+                part += `:nth-of-type(${sameTag.indexOf(cur) + 1})`;
+              }
+            }
+            parts.unshift(part);
+            cur = parent;
+          }
+          return parts.join(' > ');
+        }
+
+        function colorize(sel) {
+          return esc(sel)
+            .replace(/\[data-slide="\d+"\]/g, m => `<span class="tag-part">${m}</span>`)
+            .replace(/\.[a-zA-Z_-][a-zA-Z0-9_-]*/g, m => `<span class="cls-part">${m}</span>`)
+            .replace(/ &gt; /g, '<span class="sep-part"> › </span>');
+        }
+
+        function setOverlayTo(el) {
+          const rect = el.getBoundingClientRect();
+          overlay.style.display = 'block';
+          overlay.style.top = rect.top + 'px';
+          overlay.style.left = rect.left + 'px';
+          overlay.style.width = rect.width + 'px';
+          overlay.style.height = rect.height + 'px';
+          tooltip.innerHTML = colorize(buildSelector(el));
+          tooltip.style.display = 'block';
+          let tipTop = rect.bottom + 6;
+          let tipLeft = rect.left;
+          const tipRect = tooltip.getBoundingClientRect();
+          if (tipTop + tipRect.height > window.innerHeight - 8) tipTop = rect.top - tipRect.height - 6;
+          if (tipLeft + tipRect.width > window.innerWidth - 8) tipLeft = window.innerWidth - tipRect.width - 8;
+          if (tipLeft < 8) tipLeft = 8;
+          tooltip.style.top = tipTop + 'px';
+          tooltip.style.left = tipLeft + 'px';
+        }
+
+        function hideAim() { overlay.style.display = 'none'; tooltip.style.display = 'none'; }
+        function exitAimMode() {
+          aimMode = false;
+          document.body.classList.remove('aim-active');
+          aimBtn.classList.remove('active');
+          hideAim();
+        }
+        function enterAimMode() {
+          aimMode = true;
+          document.body.classList.add('aim-active');
+          aimBtn.classList.add('active');
+        }
+
+        aimBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (aimMode) exitAimMode(); else enterAimMode();
+        });
+        document.addEventListener('mousemove', (e) => {
+          if (!aimMode) return;
+          const el = document.elementFromPoint(e.clientX, e.clientY);
+          const scene = activeSceneEl();
+          if (!el || !scene || !scene.contains(el)) { hideAim(); return; }
+          setOverlayTo(el);
+        });
+        document.addEventListener('click', (e) => {
+          if (!aimMode) return;
+          const el = document.elementFromPoint(e.clientX, e.clientY);
+          const scene = activeSceneEl();
+          if (!el || !scene || !scene.contains(el)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const sel = buildSelector(el);
+          copyToClipboard(sel).then(() => showToast('✓ 복사되었습니다', sel, { ms: 2500 }));
+          exitAimMode();
+        }, true);
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && aimMode) { exitAimMode(); e.preventDefault(); }
+        });
+
+        /* ============ Edit: 글자를 고쳐 serve_live.py로 저장 ============ */
+        const editBtn = document.getElementById('nav-edit');
+        const INLINE_TAGS = new Set(['SPAN','EM','STRONG','B','I','U','A','BR','CODE','MARK','SMALL']);
+        const origTexts = new Map();
+        let editMode = false;
+
+        /** 인라인 태그만 품은 "글자 잎" 요소인가 */
+        function isTextOnlyLeaf(el) {
+          if (!el.children.length) return true;
+          return Array.from(el.children).every(c => INLINE_TAGS.has(c.tagName) && isTextOnlyLeaf(c));
+        }
+
+        /** 장면 안에서 편집 가능한 글자 잎 요소를 모은다(아이콘·발표자 노트 제외). */
+        function findEditableElements(scope) {
+          const out = [];
+          const walk = (el) => {
+            if (el.hasAttribute('aria-hidden')) return;
+            if (el.classList.contains('speaker-note')) return;
+            if (el.tagName === 'IMG' || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
+            if (isTextOnlyLeaf(el) && el.textContent.trim()) out.push(el);
+            else Array.from(el.children).forEach(walk);
+          };
+          Array.from(scope.children).forEach(walk);
+          return out;
+        }
+
+        /** 패치용 단순 셀렉터: 클래스가 있으면 .a.b, 없으면 태그 이름 */
+        function simpleSelector(el) {
+          if (!el.className || typeof el.className !== 'string') return el.tagName.toLowerCase();
+          const parts = el.className.trim().split(/\s+/)
+            .filter(c => c && c !== 'active' && !c.startsWith('aim-') && !c.startsWith('edit-'));
+          return parts.length ? '.' + parts.join('.') : el.tagName.toLowerCase();
+        }
+
+        /**
+         * 같은 장면에서 "같은 셀렉터 + 같은 원래 문구"를 가진 요소가 여럿이면 몇 번째인지(1부터).
+         * 하나뿐이면 0 → 패치에 NTH 줄을 쓰지 않는다. 서버는 여럿인데 NTH가 없으면 ambiguous로 거부한다.
+         */
+        function nthAmongTwins(el, slide, sel, origHTML) {
+          const twins = [];
+          origTexts.forEach((html, other) => {
+            if (slide.contains(other) && simpleSelector(other) === sel && html.trim() === origHTML.trim()) twins.push(other);
+          });
+          if (twins.length < 2) return 0;
+          twins.sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1);
+          return twins.indexOf(el) + 1;
+        }
+
+        function enterEditMode() {
+          editMode = true;
+          document.body.classList.add('edit-mode');
+          editBtn.classList.add('active');
+          editBtn.textContent = 'Done';
+          scenes.forEach(slide => {
+            findEditableElements(slide).forEach(el => {
+              origTexts.set(el, el.innerHTML);
+              el.contentEditable = 'true';
+              el.spellcheck = false;
+            });
+          });
+        }
+
+        /** 변경 목록을 serve_live.py가 읽는 마크다운 패치로 만든다. */
+        function buildPatch(bySlide, total) {
+          const title = document.title.replace(/ · Overview.*$/, '');
+          let patch = `# Overview edits — ${title} (${total} change${total === 1 ? '' : 's'})\n\n`;
+          Array.from(bySlide.keys()).sort((a, b) => parseInt(a) - parseInt(b)).forEach(num => {
+            const { skill, changes } = bySlide.get(num);
+            patch += `## Slide ${num}${skill ? ' (' + skill + ')' : ''}\n`;
+            changes.forEach(c => {
+              patch += `- ${c.sel}\n`;
+              if (c.nth) patch += `  NTH: ${c.nth}\n`;
+              patch += `  OLD: ${c.old}\n  NEW: ${c.new}\n`;
+            });
+            patch += '\n';
+          });
+          return patch;
+        }
+
+        /** 서버가 돌려준 실패 목록을 사람이 읽을 요약으로 */
+        function describeFailures(failed) {
+          return (failed || []).slice(0, 4).map(f => `#${f.slide} ${f.selector} — ${f.reason}`).join('\n') +
+            ((failed || []).length > 4 ? `\n…외 ${failed.length - 4}건` : '');
+        }
+
+        function exitEditMode() {
+          editMode = false;
+          document.body.classList.remove('edit-mode');
+          editBtn.classList.remove('active');
+          editBtn.textContent = 'Edit';
+          const bySlide = new Map();
+          origTexts.forEach((origHTML, el) => {
+            const curHTML = el.innerHTML;
+            if (origHTML.trim() !== curHTML.trim()) {
+              const slide = el.closest('[data-slide]');
+              const num = slide ? slide.dataset.slide : '?';
+              const skill = slide ? (slide.dataset.skill || '') : '';
+              const sel = simpleSelector(el);
+              const nth = slide ? nthAmongTwins(el, slide, sel, origHTML) : 0;
+              if (!bySlide.has(num)) bySlide.set(num, { skill, changes: [] });
+              bySlide.get(num).changes.push({ sel, nth, old: origHTML.trim(), new: curHTML.trim() });
+            }
+          });
+          origTexts.forEach((_, el) => el.removeAttribute('contenteditable'));
+          origTexts.clear();
+          const total = Array.from(bySlide.values()).reduce((a, v) => a + v.changes.length, 0);
+          if (total === 0) return;
+
+          Array.from(bySlide.keys()).forEach(num => syncThumbFromScene(parseInt(num, 10)));
+          const patch = buildPatch(bySlide, total);
+
+          if (!location.protocol.startsWith('http')) {
+            // file://로 연 경우: 저장 서버가 없으므로 곧바로 클립보드
+            copyToClipboard(patch).then(() => showToast(`✎ ${total}개 변경 클립보드 복사됨`, '저장 서버 없음 — 대화창에 붙여넣어 반영을 요청하세요', { ms: 4500 }));
+            return;
+          }
+
+          fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ patch: patch, page: location.pathname }),
+          }).then(async (r) => {
+            let result = {};
+            try { result = await r.json(); } catch (e) {}
+            if (r.ok) {
+              if (result.mtime) lastMtime = result.mtime;   // 내 저장으로 인한 자동 새로고침 방지
+              showToast(`✓ ${result.applied}건 반영됨 (파일 직접 수정)`, '오른쪽 화면과 왼쪽 썸네일이 함께 갱신됨', { ms: 4000 });
+              return;
+            }
+            // 4xx: 일부 또는 전부 실패 → 실패 토스트 + 패치 전체를 클립보드로
+            if (result.mtime) lastMtime = result.mtime;
+            const head = r.status === 409
+              ? `⚠ ${result.applied}/${result.changes_requested}건만 반영됨 (${r.status})`
+              : `✗ 반영 실패 (${r.status})`;
+            const detail = result.failed ? describeFailures(result.failed) : (result.error || '');
+            await copyToClipboard(patch);
+            showToast(head, detail + '\n패치를 클립보드에 복사했습니다 — 대화창에 붙여넣어 주세요', { fail: true, ms: 8000 });
+          }).catch(() => {
+            copyToClipboard(patch).then(() => showToast(`✎ ${total}개 변경 클립보드 복사됨`, '저장 서버 응답 없음 — 대화창에 붙여넣어 반영을 요청하세요', { fail: true, ms: 6000 }));
+          });
+        }
+
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (editMode) exitEditMode(); else enterEditMode();
+        });
+
+        // 편집 중에는 화살표·스페이스가 장면을 넘기지 않게 막는다
+        document.addEventListener('keydown', (e) => {
+          if (editMode && document.activeElement && document.activeElement.isContentEditable) {
+            e.stopPropagation();
+          }
+        }, true);
+
+        /* ============ 외부 수정 감지: 3초마다 /mtime 확인 → 바뀌면 새로고침 ============ */
+        let lastMtime = null;
+        function pollMtime() {
+          if (!location.protocol.startsWith('http')) return;        // file://에서는 끈다
+          fetch('/mtime?page=' + encodeURIComponent(location.pathname), { cache: 'no-store' })
+            .then(r => r.ok ? r.json() : Promise.reject(r.status))
+            .then(({ mtime }) => {
+              if (lastMtime === null) lastMtime = mtime;
+              else if (mtime !== lastMtime && !editMode) location.reload();   // 해시(#n)로 보던 장면 유지
+              setTimeout(pollMtime, 3000);
+            })
+            .catch(() => { /* 정적 서버(엔드포인트 없음)면 조용히 멈춘다 */ });
+        }
+        pollMtime();
+      })();
+    </script>
+  </body>
+</html>

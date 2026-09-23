@@ -1,0 +1,9 @@
+{
+  "slug": "_sample",
+  "title": "ppt-maker 샘플 덱",
+  "type": "general",
+  "rules_preset": "general",
+  "design_source": "DESIGN.md (ppt-maker 내장 기본값)",
+  "created": "2026-09-23",
+  "note": "스크립트·템플릿 회귀 검증용 3장 기준 덱"
+}

@@ -1,0 +1,61 @@
+{
+  "_설명": "교육 교안(edu) 프리셋. new_topic.py가 topic의 deck-rules.json으로 복사한다. qa_rules.py·qa_check.mjs·validate_topic.py가 읽는다. 조직 전용 규칙은 여기에 넣지 말고 topic 파일에만 추가한다.",
+  "preset": "edu",
+  "slide_count_range": [20, 40],
+  "min_font_px": 24,
+  "min_fig_font_px": 32,
+  "max_note_sentences": 6,
+  "fig_selectors": [],
+  "require_visual": true,
+  "visual_selectors": ["img", ".stats", ".steps", ".compare-grid", ".flow", ".tags", ".split-image", ".image-frame", ".code-card", ".placeholder", ".dg", ".data-table", "svg"],
+  "speaker_notes_required": true,
+  "forbidden_markup": {
+    "인라인 style": " style=\"",
+    "<br> 태그": "<br\\s*/?>"
+  },
+  "forbidden_patterns": [
+    {
+      "name": "화면 반말(평서형)",
+      "where": "screen",
+      "pattern": "(?<=[가-힣])(?<!니)다\\.",
+      "except_scenes": [],
+      "_이유": "교육 자료 화면 문장은 존댓말(…합니다/…입니다)로 쓴다. 명사형 라벨은 해당하지 않는다."
+    },
+    {
+      "name": "출처 줄의 '근거:'",
+      "where": "source",
+      "pattern": "근거:",
+      "except_scenes": [],
+      "_이유": "출처 줄에는 청중이 확인할 수 있는 공개 자료만 적는다."
+    },
+    {
+      "name": "출처 줄의 비공식 자료",
+      "where": "source",
+      "pattern": "교안|강의안|조사 ?정리|개인 기록|내부 자료|사내 가이드",
+      "except_scenes": [],
+      "_이유": "청중이 볼 수 없는 자료는 출처에 적지 않는다."
+    },
+    {
+      "name": "로컬·내부 주소 노출",
+      "where": "screen",
+      "pattern": "127\\.0\\.0\\.1|localhost|(?:10|192\\.168)\\.\\d+\\.\\d+|\\.internal\\b|\\.corp\\b",
+      "except_scenes": [],
+      "_이유": "내부 주소는 화면에 쓰지 않는다. 역할 이름(예: 사내 추론 서버)으로 쓴다."
+    },
+    {
+      "name": "화면 시간 표기",
+      "where": "screen",
+      "pattern": "\\d{1,2}:\\d{2}|\\d+\\s*분(?![가-힣])",
+      "except_scenes": [],
+      "_이유": "BRIEF time_display가 '첫 장만'이면 시간표 장면 ID를 except_scenes에 넣는다. '전체'면 이 규칙을 지운다."
+    }
+  ],
+  "except_patterns": [],
+  "overflow_drop_order": ["설명문", "보조 캡션", "출처 줄 축약", "장식 아이콘"],
+  "keep_always": ["장면 제목", "정의 한 줄", "용어의 우리말 부제", "단계 번호", "이미지 자리표시"],
+  "options": {
+    "term_style": "전문용어 + 우리말 부제",
+    "operation": "solo",
+    "time_display": "first"
+  }
+}

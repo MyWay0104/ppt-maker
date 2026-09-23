@@ -1,0 +1,33 @@
+{
+  "_설명": "독서모임 리딩자료(reading) 프리셋. 인용 장면은 쪽수 표기가 필수다.",
+  "preset": "reading",
+  "slide_count_range": [10, 15],
+  "min_font_px": 24,
+  "min_fig_font_px": 32,
+  "max_note_sentences": 6,
+  "fig_selectors": [],
+  "require_visual": false,
+  "visual_selectors": ["img", ".stats", ".steps", ".compare-grid", ".flow", ".tags", ".split-image", ".image-frame", "svg"],
+  "speaker_notes_required": false,
+  "forbidden_markup": {
+    "인라인 style": " style=\"",
+    "<br> 태그": "<br\\s*/?>"
+  },
+  "forbidden_patterns": [
+    {
+      "name": "쪽수 없는 인용",
+      "where": "quote_attrib",
+      "pattern": "^(?!.*p\\.\\s?\\d+).+$",
+      "except_scenes": [],
+      "_이유": "quote 장면의 출처(.quote-attrib)에는 p.NN 쪽수를 붙인다."
+    }
+  ],
+  "except_patterns": [],
+  "overflow_drop_order": ["설명문", "보조 캡션", "장식 아이콘"],
+  "keep_always": ["장면 제목", "인용문과 쪽수", "발제 질문"],
+  "options": {
+    "term_style": "비유 허용",
+    "operation": "interactive",
+    "time_display": "none"
+  }
+}

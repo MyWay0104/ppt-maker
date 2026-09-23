@@ -1,0 +1,16 @@
+{
+  "description": "장면 <section>의 data-skill에 쓸 수 있는 타입 목록. validate_topic.py와 check_fragment.py가 함께 읽는다.",
+  "skills": [
+    "title",
+    "title-bullets",
+    "title-image",
+    "title-tags",
+    "split",
+    "stat",
+    "steps",
+    "compare",
+    "evolution-flow",
+    "quote",
+    "kindergarten-notice"
+  ]
+}

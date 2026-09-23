@@ -1,0 +1,33 @@
+{
+  "_설명": "일반 발표(general) 프리셋. 최소 규칙만 둔다.",
+  "preset": "general",
+  "slide_count_range": [8, 15],
+  "min_font_px": 24,
+  "min_fig_font_px": 32,
+  "max_note_sentences": 6,
+  "fig_selectors": [],
+  "require_visual": false,
+  "visual_selectors": ["img", ".stats", ".steps", ".compare-grid", ".flow", ".tags", ".split-image", ".image-frame", "svg"],
+  "speaker_notes_required": false,
+  "forbidden_markup": {
+    "인라인 style": " style=\"",
+    "<br> 태그": "<br\\s*/?>"
+  },
+  "forbidden_patterns": [
+    {
+      "name": "로컬·내부 주소 노출",
+      "where": "screen",
+      "pattern": "127\\.0\\.0\\.1|localhost",
+      "except_scenes": [],
+      "_이유": "내부 주소는 화면에 쓰지 않는다."
+    }
+  ],
+  "except_patterns": [],
+  "overflow_drop_order": ["설명문", "보조 캡션", "장식 아이콘"],
+  "keep_always": ["장면 제목"],
+  "options": {
+    "term_style": "비유 허용",
+    "operation": "interactive",
+    "time_display": "none"
+  }
+}
