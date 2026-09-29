@@ -36,6 +36,7 @@ model: sonnet
 - `data-slide`는 메인이 다시 매기므로 0이면 된다
 - 글자 요소마다 `data-editable="true"`, 장식은 `aria-hidden="true"`
 - 금지: 인라인 style, hex 색, `<br>`, 장면 안 `<section>`, 외부 URL 이미지, CSS에 없는 클래스, 영상 프레임워크 흔적(clip 클래스·타이밍 속성), `crossorigin`
+- 금지: 글자가 들어간 손 SVG(`<svg>` 안 `<text>`), `position: absolute` + 숫자 좌표 라벨. 흐름·순환·허브·계층·시간·깔때기 그림은 `data-skill="diagram"` 부품(`slide-types` `references/diagram.md`)의 HTML을 복사해 글자만 바꾼다. 좌표를 계산해야 하는 그림이면 이미지 자리표시로 두고 보고한다
 - 이미지: `<img src="assets/img/…" alt="설명">`
 - 화면 글자에 장면 ID를 쓰지 않는다
 - 문구 문서와 시각 계획이 어긋나면: 문구는 문구 문서, 구조는 시각 계획. 풀리지 않으면 보고한다

@@ -8,13 +8,13 @@ HTML을 고칠 때마다 아래 순서로 돈다. 높음이 0건이 되기 전�
 |---|---|---|---|
 | 1 | `build_present.py topics/<slug>` | present.html 재생성(파생 파일이 첫 단계) | 추출 오류 수정 |
 | 2 | `validate_topic.py topics/<slug>` | 필수 파일, 게이트 A, 마커·연번, 금지 문자열, 허용 타입, 노트 | exit 1 |
-| 3 | `qa_check.mjs topics/<slug>` | 넘침·잘림·겹침(SVG 안은 제외)·명암비·글자 하한·외부 요청(전체 장면) | 높음 → exit 1 |
+| 3 | `qa_check.mjs topics/<slug>` | 넘침·잘림·겹침·글자 겹침(절대 배치·SVG 포함)·SVG 검사(잘림·도형 밖 글자·실제 글자 크기·그림 쏠림)·명암비·글자 하한·외부 요청(전체 장면) | 높음 → exit 1 |
 | 4 | `deck/qa_rules.py topics/<slug>` | `deck-rules.json` 하우스 룰(금지어·말투·출처·시간 표기) | exit 1 |
 | 5 | `export_pdf.mjs topics/<slug> --shots-only` | `_work/shots/slide-NN.png` (PDF와 같은 렌더) | — |
 | 6 | 눈 검수(`deck-reviewer` post) | 아래 3절 체크리스트 | 높음·중간 반영 |
 | 7 | `build_present.py topics/<slug> --check` | 끝에 최신 확인 | 1로 돌아감 |
 
-스크립트는 모두 `${CLAUDE_SKILL_DIR}/scripts/` 아래에 있다. 장면 일부만 고쳤으면 3번에 `--slides 3,5-7`을 줄 수 있지만, 사용자 검토 요청 직전에는 반드시 전체 장면으로 돈다.
+스크립트는 모두 `${CLAUDE_SKILL_DIR}/scripts/` 아래에 있다. `qa_check` 메시지 끝의 "고치는 법"을 그대로 따른다(SKILL.md 4절 18항). 좌표를 몇 px씩 옮기며 다시 돌리지 않는다. 장면 일부만 고쳤으면 3번에 `--slides 3,5-7`을 줄 수 있지만, 사용자 검토 요청 직전에는 반드시 전체 장면으로 돈다.
 
 ## 2. 심각도
 

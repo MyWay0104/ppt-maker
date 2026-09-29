@@ -10,7 +10,7 @@ scaffold_overview.py — BRIEF가 확정된 topic에 첫 overview.html(제목 �
     1) BRIEF.md status가 confirmed가 아니면 exit 3 (게이트 A — HTML은 BRIEF 확정 뒤에만)
     2) DESIGN.md의 색을 deck-design 2절 매핑표대로 :root 토큰으로 옮긴다
        (front matter `colors:` 또는 본문 `{colors.키}` — #hex 두 형식 모두 읽음)
-    3) assets/scene-base.css + 토큰 + 빈 PATCH 구간으로 장면 스타일을 만든다
+    3) assets/scene-base.css + assets/infographic.css + 토큰 + 빈 PATCH 구간으로 장면 스타일을 만든다
     4) BRIEF 제목으로 title 장면 1장을 넣어 assets/overview.template.html을 채운다
 
 종료 코드: 0 생성 / 1 이미 있음·입력 오류 / 3 BRIEF 미확정
@@ -140,6 +140,8 @@ def main() -> int:
         root_block,
         "",
         indent((ASSETS / "scene-base.css").read_text(encoding="utf-8")),
+        "",
+        indent((ASSETS / "infographic.css").read_text(encoding="utf-8")),
         "",
         "      /* 덱 전체 디자인 수정은 _work/slide_ui/0N_*.css에 쓰고 apply_css_patch.py로 아래 구간에 적용한다(직접 쓰지 않는다) */",
         "      /* ===== PATCH START ===== */",

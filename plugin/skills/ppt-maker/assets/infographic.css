@@ -1,0 +1,156 @@
+/* ===== 인포그래픽 부품 (data-skill="diagram", slide-types references/diagram.md) =====
+ * 원칙: 모델은 좌표를 한 개도 쓰지 않는다. 배치는 flex·grid·CSS 삼각함수가 계산한다.
+ *       모델이 고르는 것은 부품 이름, 항목 수(3~6), 글자뿐이다.
+ * 부품: ig-flow(가로 흐름) · ig-cycle(순환 고리) · ig-cycle.has-hub(가운데 허브) · ig-layers(계층 구조)
+ *       · ig-timeline(시간 순서) · ig-funnel(깔때기)
+ * 항목은 모두 .ig-node, 안의 글자는 .ig-title(필수) · .ig-desc(선택) · .ig-when(timeline만).
+ * .ig-node에 글자를 직접 넣지 않는다(항상 자식 요소로). 강조 항목 하나는 .is-key.
+ */
+.fig-center { display: block; margin-inline: auto; }
+
+.ig {
+  --ig-gap: 72px;
+  --ig-line: var(--text-dim);
+  --ig-on-accent: var(--bg);
+  /* 칠한 강조 상자는 강조색을 본문색 쪽으로 22% 눌러 쓴다. 밝은 강조색(주황·하늘)에서도 글자 명암비 3:1 이상 */
+  --ig-key-bg: color-mix(in srgb, var(--accent) 78%, var(--text));
+  list-style: none; margin: 0; padding: 0;
+  align-self: center;
+  word-break: keep-all;   /* 한국어 낱말 중간에서 줄을 바꾸지 않는다 */
+}
+.ig .ig-title { font-size: 36px; font-weight: 700; line-height: 1.3; text-wrap: balance; }
+.ig .ig-desc { font-size: 28px; font-weight: 500; line-height: 1.4; color: var(--text-dim); text-wrap: pretty; }
+.ig .ig-node {
+  background: var(--surface); border: 2px solid var(--line); border-radius: var(--radius-card, 24px);
+  color: var(--text);
+}
+.ig .ig-node.is-key { background: var(--ig-key-bg); border-color: var(--ig-key-bg); color: var(--ig-on-accent); }
+.ig .ig-node.is-key .ig-desc { color: var(--ig-on-accent); }
+
+/* ---- ig-flow: 가로 흐름 3~5개. 화살표는 칸 사이 간격에 CSS가 그린다 ---- */
+.ig-flow {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: var(--ig-gap);
+  width: 100%;
+}
+.ig-flow > .ig-node {
+  position: relative;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  gap: 16px; padding: 44px 28px; min-height: 320px;
+}
+.ig-flow > .ig-node .ig-title { font-size: 40px; }
+.ig-flow > .ig-node .ig-desc { font-size: 30px; }
+.ig-flow > .ig-node:not(:last-child)::after {
+  content: ""; position: absolute; top: 50%; left: calc(100% + 2px);
+  width: calc(var(--ig-gap) - 4px); height: 32px; transform: translateY(-50%);
+  background: var(--ig-line);
+  clip-path: polygon(12% 40%, 58% 40%, 58% 12%, 90% 50%, 58% 88%, 58% 60%, 12% 60%);
+}
+
+/* ---- ig-cycle: 순환 고리 3~6개. 위치는 cos()/sin()이 항목 수와 순번으로 계산한다 ---- */
+.ig-cycle {
+  --n: 4; --r: 220px; --node-w: 320px; --node-h: 130px;
+  position: relative; isolation: isolate;
+  width: calc(var(--r) * 2 + var(--node-w));
+  height: calc(var(--r) * 2 + var(--node-h));
+  margin-inline: auto;
+}
+.ig-cycle:has(> .ig-node:nth-child(3 of .ig-node)) { --n: 3; --r: 210px; }
+.ig-cycle:has(> .ig-node:nth-child(4 of .ig-node)) { --n: 4; --r: 220px; }
+.ig-cycle:has(> .ig-node:nth-child(5 of .ig-node)) { --n: 5; --r: 235px; --node-w: 290px; --node-h: 120px; }
+.ig-cycle:has(> .ig-node:nth-child(6 of .ig-node)) { --n: 6; --r: 250px; --node-w: 260px; --node-h: 124px; }
+.ig-cycle > .ig-node:nth-child(1 of .ig-node) { --i: 0; }
+.ig-cycle > .ig-node:nth-child(2 of .ig-node) { --i: 1; }
+.ig-cycle > .ig-node:nth-child(3 of .ig-node) { --i: 2; }
+.ig-cycle > .ig-node:nth-child(4 of .ig-node) { --i: 3; }
+.ig-cycle > .ig-node:nth-child(5 of .ig-node) { --i: 4; }
+.ig-cycle > .ig-node:nth-child(6 of .ig-node) { --i: 5; }
+/* 고리 선(글자 없음, 모든 항목 뒤) */
+.ig-cycle::before {
+  content: ""; position: absolute; z-index: -1;
+  left: calc(50% - var(--r)); top: calc(50% - var(--r));
+  width: calc(var(--r) * 2); height: calc(var(--r) * 2);
+  border: 4px dashed var(--ig-line); border-radius: 50%; box-sizing: border-box;
+}
+.ig-cycle > .ig-node {
+  --a: calc(360deg / var(--n) * var(--i) - 90deg);   /* 첫 항목은 12시 방향, 시계 방향 */
+  position: absolute; box-sizing: border-box;
+  left: calc(50% + var(--r) * cos(var(--a)) - var(--node-w) / 2);
+  top: calc(50% + var(--r) * sin(var(--a)) - var(--node-h) / 2);
+  width: var(--node-w); height: var(--node-h); overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  gap: 4px; padding: 12px 20px;
+}
+.ig-cycle > .ig-node .ig-title { font-size: 36px; }
+.ig-cycle > .ig-node .ig-desc { font-size: 26px; }
+
+/* 가운데 허브: 점선 고리 대신 바큇살(항목 수만큼 원뿔 그라데이션 선). .ig-center 하나를 넣는다 */
+.ig-cycle.has-hub::before {
+  border: 0;
+  background: repeating-conic-gradient(from -0.6deg, var(--ig-line) 0deg 1.2deg, transparent 1.2deg calc(360deg / var(--n)));
+}
+.ig-cycle.has-hub > .ig-center {
+  --hub: 240px;
+  position: absolute; box-sizing: border-box;
+  left: calc(50% - var(--hub) / 2); top: calc(50% - var(--hub) / 2);
+  width: var(--hub); height: var(--hub); border-radius: 50%; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+  padding: 24px; background: var(--ig-key-bg); color: var(--ig-on-accent);
+}
+.ig-cycle.has-hub > .ig-center .ig-title { font-size: 36px; }
+
+/* ---- ig-layers: 계층(아키텍처) 3~5단. 왼쪽 이름 + 오른쪽 칩 ---- */
+.ig-layers { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+.ig-layers > .ig-node {
+  display: grid; grid-template-columns: 340px 1fr; align-items: center; gap: 32px;
+  padding: 36px 44px;
+}
+.ig-layers .ig-title { font-size: 40px; }
+.ig-layers .ig-chips { display: flex; flex-wrap: wrap; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.ig-layers .ig-chip {
+  font-size: 30px; font-weight: 600; padding: 10px 24px; border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface)); color: var(--text);
+}
+.ig-layers > .ig-node.is-key .ig-chip { background: color-mix(in srgb, var(--ig-on-accent) 85%, var(--accent)); }
+
+/* ---- ig-timeline: 시간 순서 3~6개. 점과 선은 CSS가 그린다 ---- */
+.ig-timeline { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 32px; width: 100%; }
+.ig-timeline > .ig-node {
+  position: relative; background: none; border: 0;
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px;
+  padding-top: 84px;
+}
+.ig-timeline > .ig-node .ig-title { font-size: 40px; }
+.ig-timeline > .ig-node .ig-desc { font-size: 30px; }
+.ig-timeline > .ig-node::before {   /* 점 */
+  content: ""; position: absolute; top: 14px; left: calc(50% - 18px);
+  width: 36px; height: 36px; border-radius: 50%; box-sizing: border-box;
+  background: var(--surface); border: 6px solid var(--accent); z-index: 1;
+}
+.ig-timeline > .ig-node:not(:last-child)::after {   /* 다음 점까지 선 */
+  content: ""; position: absolute; top: 30px; left: 50%;
+  width: calc(100% + 32px); height: 4px; background: var(--ig-line);
+}
+.ig-timeline > .ig-node.is-key { background: none; color: var(--text); }
+.ig-timeline > .ig-node.is-key::before { background: var(--accent); }
+.ig-timeline > .ig-node.is-key .ig-desc { color: var(--text-dim); }
+.ig-timeline .ig-when { font-size: 30px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+
+/* ---- ig-funnel: 깔때기 3~5단. 폭은 순번이 정한다 ---- */
+.ig-funnel { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.ig-funnel > .ig-node {
+  --k: 0;
+  width: calc(100% - var(--k) * 14%); min-height: 112px; box-sizing: border-box;
+  display: flex; justify-content: center; align-items: center; gap: 24px; text-align: center;
+  padding: 16px 48px; border-radius: 16px;
+  background: var(--ig-key-bg); border: 0; color: var(--ig-on-accent);
+}
+/* 둘째 줄부터는 옅은 강조색 + 본문색 글자(어떤 팔레트에서도 명암비가 유지된다) */
+.ig-funnel > .ig-node:nth-child(n+2) {
+  background: color-mix(in srgb, var(--accent) calc(50% - var(--k) * 10%), var(--surface));
+  border: 2px solid var(--line); color: var(--text);
+}
+.ig-funnel > .ig-node:nth-child(2) { --k: 1; }
+.ig-funnel > .ig-node:nth-child(3) { --k: 2; }
+.ig-funnel > .ig-node:nth-child(4) { --k: 3; }
+.ig-funnel > .ig-node:nth-child(5) { --k: 4; }
+.ig-funnel > .ig-node .ig-desc { color: inherit; }

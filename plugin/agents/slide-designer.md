@@ -54,5 +54,6 @@ tools: Read, Grep, Glob, Write, Edit
 ## 규칙
 
 - 구조 강조색은 한 색(`--accent`). 장면당 글자 크기 종류 4개 이하
+- 그림 장면은 `diagram` 부품 이름과 항목 수로 계획한다(`slide-types` `references/diagram.md`의 글자 수 상한 확인). 좌표·px 위치로 그림을 설계하지 않는다. 조정은 부품 CSS 변수(`--ig-gap`, `--r`, `--node-w`)만
 - 인라인 style·hex 직접 기입 금지. 토큰 변수만
 - 장면 하나를 끝낼 때마다 출력 파일에 덧붙여 저장한다
