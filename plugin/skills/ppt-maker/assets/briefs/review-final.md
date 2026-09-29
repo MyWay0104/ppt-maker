@@ -16,8 +16,9 @@ python ${CLAUDE_SKILL_DIR}/scripts/deck/dump_deck_text.py topics/{{SLUG}} > topi
 
 topic: topics/{{SLUG}}
 mode: post
+vision_review: {{deck-rules.json options.vision_review — false면 비전 없음 모드}}
 
-너는 발표자료의 마지막 시각 검토를 맡는다. `topics/{{SLUG}}/_work/shots/slide-NN.png`를 담당 범위에서 한 장씩 모두 연다.
+너는 발표자료의 마지막 시각 검토를 맡는다. `topics/{{SLUG}}/_work/qa_check.json`을 먼저 읽고, `topics/{{SLUG}}/_work/shots/slide-NN.png`를 담당 범위에서 한 장씩 모두 연다. `vision_review: false`면 PNG를 열지 않고 qa_check.json·텍스트 덤프로만 판정한 뒤, 아래 "볼 것" 가운데 화면을 봐야 하는 항목은 장면마다 "눈 검수 미실시 — 사용자 확인"으로 적는다.
 
 ### 이 덱의 디자인 규칙 (결함으로 보지 않을 것)
 

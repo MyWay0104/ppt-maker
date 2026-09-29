@@ -44,9 +44,9 @@
   <h2 class="scene-title" data-editable="true">RAG 파이프라인</h2>
   <p class="thesis" data-editable="true">질문이 답이 되기까지 네 단계를 거칩니다</p>
   <ol class="ig ig-flow">
-    <li class="ig-node"><span class="ig-title" data-editable="true">질문 입력</span><span class="ig-desc" data-editable="true">사용자가 자연어로 묻습니다</span></li>
-    <li class="ig-node"><span class="ig-title" data-editable="true">벡터 DB 검색</span><span class="ig-desc" data-editable="true">의미가 가까운 문서 조각을 찾습니다</span></li>
-    <li class="ig-node is-key"><span class="ig-title" data-editable="true">컨텍스트 결합</span><span class="ig-desc" data-editable="true">찾은 조각을 질문과 합칩니다</span></li>
+    <li class="ig-node"><span class="ig-title" data-editable="true">질문 입력</span><span class="ig-desc" data-editable="true">자연어로 묻습니다</span></li>
+    <li class="ig-node"><span class="ig-title" data-editable="true">벡터 DB 검색</span><span class="ig-desc" data-editable="true">관련 문서를 찾습니다</span></li>
+    <li class="ig-node is-key"><span class="ig-title" data-editable="true">컨텍스트 결합</span><span class="ig-desc" data-editable="true">질문과 합칩니다</span></li>
     <li class="ig-node"><span class="ig-title" data-editable="true">LLM 답변</span><span class="ig-desc" data-editable="true">출처와 함께 답합니다</span></li>
   </ol>
   <aside class="speaker-note">대본</aside>
@@ -120,13 +120,13 @@
 
 | 부품 | `.ig-title` | `.ig-desc` |
 |---|---|---|
-| ig-flow (4개 기준) | 8자 | 20자 |
+| ig-flow (4개 기준) | 8자 | 10자(한 줄). 두 줄이면 마지막 줄이 5자 이상 |
 | ig-cycle · has-hub | 5자 | 7자 |
 | ig-layers | 6자 | 칩 하나 8자, 칩 5개 이하 |
 | ig-timeline (5개 기준) | 6자 | 8자 |
 | ig-funnel | 16자 | 쓰지 않음 |
 
-항목 수가 적으면 조금 늘어나도 된다. 판정은 `qa_check`의 `잘림`·`글자 겹침`이 한다.
+항목 수가 적으면 조금 늘어나도 된다. 판정은 `qa_check`의 `잘림`·`글자 겹침`·`고아 줄바꿈`이 한다.
 
 ## CSS
 

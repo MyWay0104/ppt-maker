@@ -56,6 +56,7 @@
   "options": {
     "term_style": "전문용어 + 우리말 부제",
     "operation": "solo",
-    "time_display": "first"
+    "time_display": "first",
+    "vision_review": true
   }
 }

@@ -21,14 +21,17 @@
  *   높음  글자 하한·명암비(SVG)  viewBox 배율을 곱한 실제 크기, fill 대 아래 도형 색으로 계산
  *   중간  SVG 그림 쏠림  그린 내용이 svg 틀 안에서 한쪽으로 몰림 → 맞는 viewBox 값을 제안
  *   중간  그림 위치 쏠림  한 줄을 혼자 차지한 svg·img·.image-frame·.fig가 부모 안에서 가운데가 아님(9절)
+ *   중간  고아 줄바꿈  여러 줄 글자의 마지막 줄이 4글자 이하(10절)
+ *   중간  격자 간격 불균형·격자 높이 불균형  같은 역할 형제 사이 간격 차이 8px 이상, 같은 줄 상자 높이 차이 8px 이상(11절)
  *   중간  상자 안 쏠림 카드 안 내용이 위로 붙어 아래 여백이 위보다 60px 이상·2배 초과
  *   중간  세로 빈 띠 위아래 빈 띠가 각 150px 이상이거나 요소 사이가 150px 이상 벌어짐(title·quote 제외)
  *   중간  이미지 축소 과다 원본 대비 0.5배 미만으로 줄여 넣음(캡처 속 글자가 안 읽힐 수 있음)
  *   낮음  이미지 확대 원본을 1.5배 넘게 키움(흐릴 수 있음)
  *   낮음  명암비 확인 필요 — 배경이 그라데이션·이미지라 자동 계산 불가(눈 검수)
  *
- * 기계가 못 잡는 것(세로 무게 중심의 미묘한 쏠림·가로 빈 여백·고아 줄바꿈·격자 간격 불균형)은
+ * 기계가 못 잡는 것(세로 무게 중심의 미묘한 쏠림·가로 빈 여백·의미 단위 줄바꿈·이미지 속 글자)은
  * _work/shots/ 스크린샷으로 deck-reviewer가 따로 본다. 이 스크립트 통과 ≠ 검수 완료.
+ * deck-rules.json options.vision_review가 false(이미지를 못 보는 모델)면 그 항목을 사용자 확인 목록으로 출력한다.
  *
  * 출력: _work/qa_check.json, 요약은 표준 출력. 높음이 1건이라도 있으면 exit 1(게이트 B).
  */
@@ -445,6 +448,78 @@ function inspectScene({ n, minFont, minFigFont, figSelectors }) {
       `부모 안에서 왼쪽 ${Math.round(gl)}px / 오른쪽 ${Math.round(gr)}px 비어 가운데가 아님. ` +
       `고치는 법: 그림에 .fig-center 클래스(display:block; margin-inline:auto)를 붙인다. 부모가 flex 세로 배치면 align-self: center`);
   }
+
+  // 10) 고아 줄바꿈: 여러 줄 글자 덩어리의 마지막 줄이 4글자 이하(qa-gate 3절 3항을 기계로).
+  //     글자 하나하나의 줄 위치를 재서 줄을 나눈다. 안에 블록 자식이 있는 요소는 자식이 따로 검사된다.
+  const blockish = (e) => !['inline', 'contents', 'none'].includes(getComputedStyle(e).display);
+  for (const el of all) {
+    if (inSvg(el) || !hasOwnText(el) || !blockish(el)) continue;
+    if ([...el.querySelectorAll('*')].some((d) => visible(d) && blockish(d))) continue;
+    const lines = [];   // [{top, n}]
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    for (let t = tw.nextNode(); t; t = tw.nextNode()) {
+      const s = t.textContent;
+      for (let i = 0; i < s.length; i++) {
+        if (/\s/.test(s[i])) continue;
+        range.setStart(t, i); range.setEnd(t, i + 1);
+        const r = range.getClientRects()[0];
+        if (!r) continue;
+        const top = rel(r).y, h = rel(r).h;
+        const line = lines.find((l) => Math.abs(l.top - top) < h * 0.5);
+        if (line) { line.n += 1; line.text += s[i]; } else lines.push({ top, n: 1, text: s[i] });
+      }
+    }
+    if (lines.length < 2) continue;
+    lines.sort((a, b) => a.top - b.top);
+    const last = lines[lines.length - 1];
+    if (last.n <= 4) {
+      add('중간', '고아 줄바꿈', el,
+        `${lines.length}줄 중 마지막 줄이 "${last.text}"(${last.n}자)뿐. 고치는 법: 문장을 줄이거나 어순을 바꾼다. ` +
+        `폭을 바꿀 때는 "높이 증감 0"으로(글자 크기는 줄이지 않는다)`);
+    }
+  }
+
+  // 11) 격자 간격·높이 불균형: 같은 역할(태그 + 첫 클래스가 같은) 형제가 한 줄(또는 한 열)에 3개 이상 있을 때
+  //     사이 간격 차이가 8px 이상이면 중간(qa-gate 3절 4항을 기계로). 상자(배경·테두리) 형제가 같은 줄에서
+  //     높이가 8px 이상 다르면 중간. 장면 바로 아래 요소(제목·요지·본문 묶음)는 역할이 달라 뺀다.
+  const role = (e) => e.tagName + '.' + (e.classList[0] || '');
+  const boxedEl = (e) => { const cs = getComputedStyle(e); const b = parse(cs.backgroundColor); return (b && b[3] > 0) || parseFloat(cs.borderTopWidth) > 0; };
+  for (const parent of all) {
+    if (parent === scene || inSvg(parent)) continue;
+    const kids = [...parent.children].filter((c) => visible(c) && inFlow(c) && !c.matches('.speaker-note'));
+    if (kids.length < 2) continue;
+    const groups = new Map();
+    for (const c of kids) { const g = groups.get(role(c)) || []; g.push({ e: c, r: rel(c.getBoundingClientRect()) }); groups.set(role(c), g); }
+    for (const items of groups.values()) {
+      if (items.length < 2) continue;
+      // 같은 줄(윗변 ±4px)과 같은 열(왼변 ±4px)로 나눈다
+      const bucket = (key) => {
+        const out = [];
+        for (const it of items) { const b = out.find((o) => Math.abs(key(o[0].r) - key(it.r)) <= 4); if (b) b.push(it); else out.push([it]); }
+        return out;
+      };
+      for (const row of bucket((r) => r.y)) {
+        row.sort((a, b) => a.r.x - b.r.x);
+        if (row.length >= 3) {
+          const gaps = row.slice(1).map((it, i) => it.r.x - (row[i].r.x + row[i].r.w));
+          if (Math.max(...gaps) - Math.min(...gaps) >= 8) add('중간', '격자 간격 불균형', parent, `같은 줄 ${role(row[0].e).toLowerCase()} 사이 간격 ${gaps.map(Math.round).join('/')}px. 고치는 법: 부모에 gap 하나로 간격을 주고 개별 margin을 지운다`);
+        }
+        const boxes = row.filter((it) => boxedEl(it.e));
+        if (boxes.length >= 2) {
+          const hs = boxes.map((it) => it.r.h);
+          if (Math.max(...hs) - Math.min(...hs) >= 8) add('중간', '격자 높이 불균형', parent, `같은 줄 상자 높이 ${hs.map(Math.round).join('/')}px. 고치는 법: 부모를 grid(align-items: stretch)로 두고 상자 안 내용은 .box-center로`);
+        }
+      }
+      for (const col of bucket((r) => r.x)) {
+        if (col.length < 3) continue;
+        col.sort((a, b) => a.r.y - b.r.y);
+        const gaps = col.slice(1).map((it, i) => it.r.y - (col[i].r.y + col[i].r.h));
+        if (gaps.some((g) => g < -1)) continue;   // 겹친 열은 여러 줄 격자(행 버킷에서 본다)
+        if (Math.max(...gaps) - Math.min(...gaps) >= 8) add('중간', '격자 간격 불균형', parent, `같은 열 ${role(col[0].e).toLowerCase()} 사이 간격 ${gaps.map(Math.round).join('/')}px. 고치는 법: 부모에 gap 하나로 간격을 주고 개별 margin을 지운다`);
+      }
+    }
+  }
   return issues;
 }
 
@@ -474,6 +549,14 @@ for (const s of report.slides) {
   for (const it of s.issues) log.info(`[${it.severity}] #${s.slide} ${it.type} — ${it.selector} — ${it.detail}`);
 }
 const { 높음, 중간, 낮음 } = report.summary;
+if (rules.options && rules.options.vision_review === false) {
+  // 비전 없음 모드(SKILL.md 4절 19항): 기계가 못 보는 항목은 통과로 두지 않고 사람에게 넘긴다
+  const scenes = report.slides.filter((s) => s.slide > 0).map((s) => s.slide);
+  report.vision_review = false;
+  report.user_check = { scenes, items: ['세로 무게 중심의 미묘한 쏠림', '빈 여백 덩어리', '의미 단위 줄바꿈', '이미지 속 글자 가독성'] };
+  writeFileSync(outFile, JSON.stringify(report, null, 2) + '\n', 'utf8');
+  log.info(`비전 없음 모드: 눈 검수 미실시 — 사용자 확인 필요(${report.user_check.items.join('·')}) · 장면 ${scenes.join(', ')}`);
+}
 log.info(`QA ${report.slides.filter((s) => s.slide > 0).length}장: 높음 ${높음} · 중간 ${중간} · 낮음 ${낮음} → ${path.relative(process.cwd(), outFile)}`);
 if (높음 > 0) {
   log.error('게이트 B: 높음이 0건이 될 때까지 사용자에게 검토를 요청하지 않는다.');
