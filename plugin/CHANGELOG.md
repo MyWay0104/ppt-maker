@@ -2,6 +2,24 @@
 
 이 파일은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따르고, 버전은 [유의적 버전](https://semver.org/lang/ko/)을 따른다.
 
+## [1.1.0] - 2026-09-29
+
+모델이 바뀌어도(예: Claude 밖의 모델로 돌 때) 그림 장면이 깨지지 않도록 좌표 계산을 모델에서 브라우저로 옮겼다.
+
+### 추가
+- `diagram` 장면 타입과 좌표 없는 인포그래픽 부품 6종(`ig-flow`, `ig-cycle`, `ig-cycle has-hub`, `ig-layers`, `ig-timeline`, `ig-funnel`) — `assets/infographic.css`, `slide-types/references/diagram.md`. 새 덱은 `scaffold_overview.py`가 넣는다
+- qa_check 7절 `글자 겹침`: 위치 방식과 무관하게(절대 배치 라벨·SVG 글자·SVG 위 HTML 글자) 실제 글자 사각형끼리 비교
+- qa_check 8절 SVG 검사: `SVG 글자 잘림`·`SVG 그림 잘림`, `SVG 도형 밖 글자`(text-anchor 원인 안내), viewBox 배율을 곱한 실제 글자 크기, fill 기준 명암비, `SVG 그림 쏠림`(맞는 viewBox 값 제안)
+- qa_check 9절 `그림 위치 쏠림`: 한 줄을 혼자 차지한 그림이 가운데가 아닐 때 `.fig-center` 안내
+- SKILL.md 4절 17~19항: 좌표 금지, qa 메시지의 고치는 법 따르기, 비전 없음 모드(이미지를 못 보는 모델)의 눈 검수 처리
+- qa_check 10절 `고아 줄바꿈`(마지막 줄 4글자 이하), 11절 `격자 간격 불균형`·`격자 높이 불균형` — 눈 검수 4항목 중 2개를 기계 검사로
+- `deck-rules.json` `options.vision_review`(기본 true). false면 qa_check가 기계로 못 보는 항목을 `user_check`로 내고, 스킬·deck-reviewer는 스크린샷을 열지 않고 사용자 확인으로 넘긴다
+
+### 변경
+- qa_check 표지 겹침 검사가 요소 오른쪽 바깥의 장식(흐름 화살표)을 표지로 오인하지 않는다
+- qa_check 4절 글자 하한·명암비가 SVG 글자를 CSS 크기·color로 잘못 재던 것을 8절로 옮겼다
+- "PNG를 Read로 열어야 완료" 지시(edit-loop·slide-types·deck-reviewer·qa-gate·images·review-final)가 비전 없음 모드에서는 사용자 확인으로 바뀐다
+
 ## [1.0.0] - 2026-09-24
 
 첫 배포 버전. 실제 사용(시운전·라이브 런)과 평가에서 나온 결함을 고쳤다.

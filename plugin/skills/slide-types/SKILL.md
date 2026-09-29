@@ -1,9 +1,9 @@
 ---
 name: slide-types
-description: 발표자료 장면(슬라이드) 타입 11종 — title, title-bullets, title-image, title-tags, split, stat, steps, compare, evolution-flow, quote, kindergarten-notice — 의 HTML 구조·CSS 핵심·선택 기준. 장면을 새로 만들거나 형태를 바꿀 때 참조한다. "3번 장면을 compare로 바꿔줘", "이 슬라이드를 단계형으로", "숫자를 크게 강조하는 장면 추가", "비교표로 바꿔", "인용구 장면 넣어줘"처럼 장면 하나의 모양을 다루는 요청이면 ppt-maker 전체 흐름 없이도 이 스킬을 쓴다.
+description: 발표자료 장면(슬라이드) 타입 12종 — title, title-bullets, title-image, title-tags, split, stat, steps, compare, evolution-flow, quote, kindergarten-notice, diagram — 의 HTML 구조·CSS 핵심·선택 기준. 장면을 새로 만들거나 형태를 바꿀 때 참조한다. "3번 장면을 compare로 바꿔줘", "이 슬라이드를 단계형으로", "숫자를 크게 강조하는 장면 추가", "비교표로 바꿔", "인용구 장면 넣어줘", "순환도·흐름도·계층도 그려줘"처럼 장면 하나의 모양을 다루는 요청이면 ppt-maker 전체 흐름 없이도 이 스킬을 쓴다.
 ---
 
-# slide-types — 장면 타입 11종
+# slide-types — 장면 타입 12종
 
 ppt-maker 덱의 장면 하나는 1920×1080 종이 한 장이다. 이 스킬은 "어떤 모양의 종이를 쓸지"와 "그 종이를 HTML로 어떻게 쓰는지"를 정한다. 타입별 상세는 `references/<타입>.md`에 있다. 필요한 타입 파일만 읽는다.
 
@@ -27,7 +27,7 @@ ppt-maker 덱의 장면 하나는 1920×1080 종이 한 장이다. 이 스킬은
 |---|---|
 | `class="scene"` | 필수. 보조 클래스(`center`, `quote` 등)는 타입 문서를 따른다 |
 | `data-slide` | 1부터 빈틈없는 연번. 장면을 넣거나 빼면 뒤 번호를 모두 다시 매긴다 |
-| `data-skill` | 아래 11개 중 하나(`references/allowed-skills.json`). 임의 타입 금지 |
+| `data-skill` | 아래 12개 중 하나(`references/allowed-skills.json`). 임의 타입 금지 |
 | `data-scene-id` | 기획 문서의 장면 ID(S01, LAB04 …). 순번이 바뀌어도 기획서와 대조하는 열쇠 |
 | `data-editable="true"` | 사용자가 Edit로 고칠 글자 요소에 붙인다 |
 | `.scene-title` | **용어 하나 또는 짧은 명사구**(12자 안팎, 괄호 부제 제외)로 쓴다. 예: `Python (파이썬)`, `LLM (Large Language Model)`, `RAG의 기본 구조`, `실습 01 · 인증 키 발급`. 비유·설명은 제목에 붙이지 않고 `.thesis`로 내린다(`Python = 말 잘 듣는 비서` → 제목 `Python (파이썬)` + thesis `말 잘 듣는 비서처럼 시킨 일을 그대로 합니다`). "LLM은 대규모 언어 모델입니다" 같은 **문장형 제목은 쓰지 않는다**(모든 타입 공통, 표지·구간 표지·quote 포함). 이유: 청중은 제목에서 "지금 무엇을 다루는지"를 한눈에 잡고, 설명은 그 아래에서 읽는다 |
@@ -48,6 +48,7 @@ ppt-maker 덱의 장면 하나는 1920×1080 종이 한 장이다. 이 스킬은
 - `<br>` 줄바꿈 → 문장 길이를 줄이거나 `max-width`·`text-wrap: balance`로 푼다
 - 영상 프레임워크의 흔적: `clip` 클래스, 시작·길이·트랙 번호 타이밍 속성, 애니메이션 라이브러리, 외부 폰트 CDN
 - 글자 크기 24px 미만(인포그래픽 상자 글자는 32px 미만) — `qa_check.mjs`가 높음으로 잡는다
+- 글자가 들어간 손 SVG(`<svg>` 안 `<text>`)와 `position: absolute` + 숫자 좌표로 놓은 라벨 → 인포그래픽은 `diagram` 타입의 부품으로 만든다(`references/diagram.md`). 좌표 계산은 모델 성능에 따라 결과가 가장 크게 흔들리는 작업이라 브라우저에 맡긴다. `qa_check`가 SVG 글자 겹침·잘림·도형 밖 글자·그림 쏠림을 높음·중간으로 잡는다
 
 이미지
 
@@ -71,6 +72,7 @@ ppt-maker 덱의 장면 하나는 1920×1080 종이 한 장이다. 이 스킬은
 | `evolution-flow` | 이전 상태 → 이후 상태(방향 있는 변화) | `references/evolution-flow.md` |
 | `quote` | 한 문장을 오래 남기기 | `references/quote.md` |
 | `kindergarten-notice` | 유치원·어린이집 학부모 안내 톤 | `references/kindergarten-notice.md` |
+| `diagram` | 흐름·순환·허브·계층·시간·깔때기 **그림**(도형 + 글자) | `references/diagram.md` |
 
 헷갈리는 쌍
 
@@ -81,6 +83,7 @@ ppt-maker 덱의 장면 하나는 1920×1080 종이 한 장이다. 이 스킬은
 | A → B 변화 | `evolution-flow` / A·B·C 대등 비교는 `compare` |
 | 이미지 + 설명 | `split` / 이미지가 주인공이고 설명이 1~2줄이면 `title-image` |
 | 숫자 4개 이상 | `stat` 대신 `compare`나 `title-bullets`로 나누거나 장면을 둘로 |
+| 순서를 글로 설명 | `steps` / 도형 사이 관계(화살표·고리·계층)가 메시지면 `diagram` |
 
 ## 3. 장면 타입을 바꾸는 절차 ("3번을 compare로")
 
@@ -91,7 +94,7 @@ ppt-maker 덱의 장면 하나는 1920×1080 종이 한 장이다. 이 스킬은
 5. 꼬리(`.source`·`.speaker-note`·`.deck-footer`)는 그대로 둔다.
 6. 새 타입에 필요한 CSS가 scene-styles에 없으면 추가한다. 다른 장면에 영향이 없도록 새 클래스 이름을 쓴다.
 7. `validate_topic.py` → `build_present.py` → `qa_check.mjs --slides 3` → `export_pdf.mjs topics/<slug> --shots-only` 순서로 돌린다(스크립트는 `${CLAUDE_SKILL_DIR}/../ppt-maker/scripts/`).
-8. **`_work/shots/slide-03.png`를 Read 도구로 직접 열어** 본다. 볼 것: 표지(불릿 점·선)와 본문 겹침, 한두 글자만 다음 줄로 떨어진 줄바꿈, 한 덩어리 말(`발표자 창`)이 두 줄로 갈린 줄바꿈, 위아래 빈 띠. 문제가 보이면 고치고 7~8을 다시 한다. 스크린샷을 열어 보기 전에는 완료로 보고하지 않는다. 이유: 타입을 바꾸면 새 CSS가 처음 화면에 찍히는데, qa_check 통과만 보고 끝냈다가 표지가 본문을 덮은 채 보고된 적이 있다(P7 평가).
+8. **`_work/shots/slide-03.png`를 Read 도구로 직접 열어** 본다. 볼 것: 표지(불릿 점·선)와 본문 겹침, 한두 글자만 다음 줄로 떨어진 줄바꿈, 한 덩어리 말(`발표자 창`)이 두 줄로 갈린 줄바꿈, 위아래 빈 띠. 문제가 보이면 고치고 7~8을 다시 한다. 스크린샷을 열어 보기 전에는 완료로 보고하지 않는다. 비전 없음 모드(`ppt-maker` SKILL.md 4절 19항)면 열지 않고 `qa_check` 높음·중간 0을 확인한 뒤 "화면 확인은 사용자 몫"과 장면 번호를 보고한다. 이유: 타입을 바꾸면 새 CSS가 처음 화면에 찍히는데, qa_check 통과만 보고 끝냈다가 표지가 본문을 덮은 채 보고된 적이 있다(P7 평가).
 
 ## 4. 마크다운 초안에서 타입 감지 (스토리보드·문구 초안을 받을 때)
 

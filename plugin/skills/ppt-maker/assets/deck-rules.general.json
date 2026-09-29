@@ -28,6 +28,7 @@
   "options": {
     "term_style": "비유 허용",
     "operation": "interactive",
-    "time_display": "none"
+    "time_display": "none",
+    "vision_review": true
   }
 }

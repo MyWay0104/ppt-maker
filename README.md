@@ -58,7 +58,7 @@ PDF·QA에 쓰는 Playwright와 Chromium이 필요합니다. **처음 덱을 만
 
 ```bash
 # 설치 위치: <Claude 설정 폴더>/plugins/cache/ppt-maker/ppt-maker/<버전>/
-#   Windows  %USERPROFILE%\.claude\plugins\cache\ppt-maker\ppt-maker\1.0.0
+#   Windows  %USERPROFILE%\.claude\plugins\cache\ppt-maker\ppt-maker\<버전>
 #   macOS/Linux  ~/.claude/plugins/cache/ppt-maker/ppt-maker/1.0.0
 S=~/.claude/plugins/cache/ppt-maker/ppt-maker/1.0.0/skills/ppt-maker/scripts
 npm install --prefix "$S"
@@ -237,6 +237,8 @@ claude plugin uninstall ppt-maker@ppt-maker     # 삭제
 |---|---|---|
 | Edit로 고친 게 저장되지 않음 | `file://`로 열었음 | 검토 서버 주소(`http://127.0.0.1:8765/...`)로 엽니다 |
 | PDF 명령이 exit 4 | 게이트 C가 닫혀 있음 | 검토를 마치고 "최종 확인"이라고 말합니다 |
+| 이미지를 못 보는 모델(Claude 밖 모델 등)로 돌리는데 "스크린샷 확인 완료"라고 보고함 | 스크린샷 눈 검수를 모델이 할 수 있다고 가정함 | topic의 `deck-rules.json` `options`에 `"vision_review": false`를 넣습니다. `qa_check`가 기계로 못 보는 항목을 사용자 확인 목록으로 내고, 스킬은 스크린샷을 열지 않습니다 |
+| 인포그래픽 글자가 겹치거나 한쪽으로 몰림 | 모델이 SVG 좌표를 직접 계산함 | `diagram` 장면 타입의 부품을 쓰게 합니다(`slide-types/references/diagram.md`). 기존 덱은 `infographic.css`를 CSS 패치로 넣습니다 |
 | 덱 만들기가 exit 3 | 게이트 A(BRIEF 승인 전) | 질문에 답하고 BRIEF를 승인합니다 |
 | `Cannot find package 'playwright'` | Node 의존성 없음 | 2절 "Node 의존성"을 실행합니다 |
 | `Executable doesn't exist ... chromium` | Chromium 미설치 | `npx --prefix "$S" playwright install chromium` |
