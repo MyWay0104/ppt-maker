@@ -2,7 +2,7 @@
 
 이 파일은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따르고, 버전은 [유의적 버전](https://semver.org/lang/ko/)을 따른다.
 
-## [Unreleased]
+## [1.1.0] - 2026-09-29
 
 모델이 바뀌어도(예: Claude 밖의 모델로 돌 때) 그림 장면이 깨지지 않도록 좌표 계산을 모델에서 브라우저로 옮겼다.
 

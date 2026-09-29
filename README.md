@@ -58,7 +58,7 @@ PDF·QA에 쓰는 Playwright와 Chromium이 필요합니다. **처음 덱을 만
 
 ```bash
 # 설치 위치: <Claude 설정 폴더>/plugins/cache/ppt-maker/ppt-maker/<버전>/
-#   Windows  %USERPROFILE%\.claude\plugins\cache\ppt-maker\ppt-maker\1.0.0
+#   Windows  %USERPROFILE%\.claude\plugins\cache\ppt-maker\ppt-maker\<버전>
 #   macOS/Linux  ~/.claude/plugins/cache/ppt-maker/ppt-maker/1.0.0
 S=~/.claude/plugins/cache/ppt-maker/ppt-maker/1.0.0/skills/ppt-maker/scripts
 npm install --prefix "$S"
